@@ -43,6 +43,13 @@ const BoothView: React.FC<BoothViewProps> = ({
     <div className="h-full w-full">
       <div className="bg-gray-800 text-white py-1 px-4 mb-3 flex justify-between items-center">
         <h2 className="text-lg font-bold">{boothName} Results</h2>
+        <div className=" py-1">
+        <div className="container mx-auto overflow-hidden">
+          <p className="animate-ticker whitespace-nowrap text-sm">
+            ⚡ LIVE UPDATES - Counting Underway - Third Round of Counting in Progress - 65% of Votes Counted - Stay Tuned for Final Results
+          </p>
+        </div>
+      </div>
         <div className="flex items-center bg-blue-600 px-2 py-1 rounded text-xs">
           <span className="animate-pulse mr-1 h-2 w-2 bg-red-500 rounded-full inline-block"></span>
           LIVE
