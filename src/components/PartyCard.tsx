@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface Candidate {
   name: string;
@@ -19,7 +20,6 @@ interface PartyCardProps {
 const PartyCard: React.FC<PartyCardProps> = ({ partyName, color, candidates, boothName, logo }) => {
   const [voteUpdated, setVoteUpdated] = useState<{ [key: string]: boolean }>({});
   
-  // Simulate vote update animation when votes change
   useEffect(() => {
     candidates.forEach(candidate => {
       const key = `${candidate.name}-${candidate.position}`;
@@ -33,7 +33,6 @@ const PartyCard: React.FC<PartyCardProps> = ({ partyName, color, candidates, boo
     });
   }, [candidates]);
   
-  // Get color classes based on party color
   const getColorClasses = () => {
     switch (color) {
       case 'blue':
@@ -83,16 +82,25 @@ const PartyCard: React.FC<PartyCardProps> = ({ partyName, color, candidates, boo
                 index === 1 ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'
               )}
             >
-              <div className="flex justify-between items-center mb-1">
-                <h3 className="font-bold text-gray-800 text-sm">{candidate.position}</h3>
-                <span className="text-xs text-gray-500">Candidate</span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <h4 className="text-base font-medium">{candidate.name}</h4>
-                <div className="flex items-center">
-                  <span className="font-bold text-lg text-blue-600">{candidate.votes}</span>
-                  <span className="ml-1 text-xs text-gray-500">votes</span>
+              <div className="flex items-center space-x-3">
+                <Avatar className="h-10 w-10 border-2 border-gray-200">
+                  <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${candidate.name}`} />
+                  <AvatarFallback>{candidate.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                
+                <div className="flex-1">
+                  <div className="flex justify-between items-center mb-1">
+                    <h3 className="font-bold text-gray-800 text-sm">{candidate.position}</h3>
+                    <span className="text-xs text-gray-500">Candidate</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-base font-medium">{candidate.name}</h4>
+                    <div className="flex items-center">
+                      <span className="font-bold text-lg text-blue-600">{candidate.votes}</span>
+                      <span className="ml-1 text-xs text-gray-500">votes</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

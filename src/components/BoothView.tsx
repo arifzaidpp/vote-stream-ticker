@@ -27,7 +27,7 @@ const BoothView: React.FC<BoothViewProps> = ({
   pendingVotes,
   countingPercentage,
   onSwitch,
-  autoSwitchInterval = 10000 // Default 10 seconds
+  autoSwitchInterval = 5000 // Changed to 5 seconds for faster switching
 }) => {
   useEffect(() => {
     if (!autoSwitchInterval) return;
@@ -49,23 +49,7 @@ const BoothView: React.FC<BoothViewProps> = ({
         </div>
       </div>
       
-      <div className="grid grid-cols-5 gap-3 h-[calc(100%-3rem)]">
-        <div className="col-span-2">
-          <div className="grid grid-rows-2 gap-3 h-full">
-            <LeadingCandidates 
-              president={leadingCandidates.president}
-              secretary={leadingCandidates.secretary}
-              treasurer={leadingCandidates.treasurer}
-            />
-            
-            <VotingStats
-              totalVotes={totalVotes}
-              pendingVotes={pendingVotes}
-              countingPercentage={countingPercentage}
-            />
-          </div>
-        </div>
-        
+      <div className="grid grid-cols-4 gap-3 h-[calc(100%-3rem)]">
         <div className="col-span-3">
           <div className="grid grid-cols-3 gap-3 h-full">
             {partyData.map((party, index) => (
@@ -77,6 +61,21 @@ const BoothView: React.FC<BoothViewProps> = ({
                 boothName={boothName}
               />
             ))}
+          </div>
+        </div>
+        
+        <div className="col-span-1">
+          <div className="grid grid-rows-2 gap-3 h-full">
+            <LeadingCandidates 
+              president={leadingCandidates.president}
+              secretary={leadingCandidates.secretary}
+              treasurer={leadingCandidates.treasurer}
+            />
+            <VotingStats
+              totalVotes={totalVotes}
+              pendingVotes={pendingVotes}
+              countingPercentage={countingPercentage}
+            />
           </div>
         </div>
       </div>
