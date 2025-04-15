@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -49,6 +50,11 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Party colors */
+    --party-a: 211 100% 50%;
+    --party-b: 120 100% 40%;
+    --party-c: 27 100% 50%;
   }
 
   .dark {
@@ -87,6 +93,11 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Party colors */
+    --party-a: 211 100% 60%;
+    --party-b: 120 100% 45%;
+    --party-c: 27 100% 60%;
   }
 }
 
@@ -97,5 +108,62 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Ticker animation */
+  @keyframes ticker {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+
+  .animate-ticker {
+    animation: ticker 20s linear infinite;
+  }
+
+  /* Update pulse animation */
+  @keyframes vote-update {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(0, 128, 255, 0);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(0, 128, 255, 0.3);
+    }
+  }
+
+  .animate-vote-update {
+    animation: vote-update 2s ease-in-out;
+  }
+
+  /* Live indicator pulse */
+  .live-indicator {
+    position: relative;
+  }
+  
+  .live-indicator::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -14px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: rgb(239, 68, 68);
+    transform: translateY(-50%);
+    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
   }
 }
