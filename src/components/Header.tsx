@@ -31,25 +31,15 @@ const Header = () => {
   };
   
   return (
-    <div className="bg-gradient-to-r from-blue-800 to-blue-900 text-white py-3 px-4 shadow-md">
-      <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
-        <h1 className="text-2xl md:text-3xl font-bold text-center md:text-left">
+    <div className="bg-gradient-to-r from-blue-800 to-blue-900 text-white py-2 px-3 shadow-md">
+      <div className="container mx-auto flex justify-between items-center">
+        <h1 className="text-xl font-bold">
           DHIU Election 2025
         </h1>
         
-        <div className="flex flex-col items-center md:items-end">
-          <p className="text-sm md:text-base font-medium">{formatDate(currentTime)}</p>
-          <p className="text-sm md:text-base font-medium">{formatTime(currentTime)}</p>
-        </div>
-      </div>
-      
-      <div className="mt-2 overflow-hidden">
-        <div className="whitespace-nowrap overflow-hidden relative">
-          <div className="animate-ticker inline-block">
-            <span className="mx-4 text-yellow-300 font-medium">
-              ⚡ LIVE UPDATES - Counting Underway - Third Round of Counting in Progress - 65% of Votes Counted - Stay Tuned for Final Results
-            </span>
-          </div>
+        <div className="flex items-end">
+          <p className="text-sm font-medium mr-2">{formatDate(currentTime)}</p>
+          <p className="text-sm font-medium bg-black/30 px-2 py-1 rounded">{formatTime(currentTime)}</p>
         </div>
       </div>
     </div>
