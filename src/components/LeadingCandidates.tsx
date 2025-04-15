@@ -49,7 +49,7 @@ const CandidateCard = ({ candidate, position }: { candidate: CandidateData, posi
         <div className="ml-3 flex-1">
           <div className={cn(
             "rounded px-3 py-2 text-white",
-            getColorClasses(candidate.color)
+            getColorClasses(candidate.partyColor)
           )}>
             <div className="flex justify-between items-center">
               <span className="font-bold">{candidate.partyName}</span>
