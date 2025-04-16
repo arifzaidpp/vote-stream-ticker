@@ -6,9 +6,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { cn } from '@/lib/utils';
+import { booth1Data, booth2Data } from '@/hooks/useElectionData';
 
 const Candidates = () => {
-  const { booth1Data, booth2Data, totalData } = useElectionData();
+  const { totalData } = useElectionData();
 
   // Flatten candidates data with party information
   const allCandidates = booth1Data.flatMap(party => 
