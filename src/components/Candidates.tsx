@@ -55,7 +55,7 @@ const Candidates = () => {
   }, [allCandidates.length]);
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-2 h-full overflow-hidden">
+    <div className="bg-white rounded-lg shadow-lg py-1 px-2 h-full overflow-hidden">
       <h2 className="text-lg font-bold mb-1 text-center">Candidate Details</h2>
       
       <Carousel 
