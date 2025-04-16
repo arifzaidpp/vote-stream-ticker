@@ -61,8 +61,6 @@ const Candidates = () => {
       <Carousel 
         className="h-[calc(100%-2rem)]"
         opts={{ loop: true, startIndex: autoPlayIndex }}
-        value={autoPlayIndex}
-        onValueChange={setAutoPlayIndex}
       >
         <CarouselContent className="h-full">
           {allCandidates.map((candidate, index) => (
