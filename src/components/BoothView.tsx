@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import PartyCard from './PartyCard';
-import LeadingCandidates from './LeadingCandidates';
+import LeadingCandidates from './LeadingParties';
 import VotingStats from './VotingStats';
 import Candidates from './Candidates';
-import CandidateComparison from './CandidateComparison';
+import CandidateComparison from './LeadingCandidates';
+import LeadingCandidates1 from './LeadingCandidates';
 
 interface BoothViewProps {
   boothName: string;
@@ -66,7 +67,7 @@ const BoothView: React.FC<BoothViewProps> = ({
 
       <div className="grid grid-cols-5 gap-3 h-[calc(100%-40px)]">
         {/* Party cards - left column (3/5 width) */}
-        <div className="col-span-3 h-full grid grid-rows-5 gap-3">
+        <div className="col-span-3 h-[calc(100%-5rem)] grid grid-rows-5 gap-3">
           <div className="row-span-3 grid grid-cols-3 gap-3">
             {partyData.map((party, index) => (
               <PartyCard
@@ -81,16 +82,16 @@ const BoothView: React.FC<BoothViewProps> = ({
           </div>
           
           <div className="row-span-2">
-            <CandidateComparison
-              presidents={candidateComparison.presidents}
-              secretaries={candidateComparison.secretaries}
-              treasurers={candidateComparison.treasurers}
+            <LeadingCandidates1
+              president={leadingCandidates.president}
+              secretary={leadingCandidates.secretary}
+              treasurer={leadingCandidates.treasurer}
             />
           </div>
         </div>
 
         {/* Right column (2/5 width) */}
-        <div className="col-span-2 h-full">
+        <div className="col-span-2 h-[calc(100%-5rem)]">
           <div className="grid grid-rows-3 gap-3 h-full">
             <div className="row-span-1">
               <LeadingCandidates

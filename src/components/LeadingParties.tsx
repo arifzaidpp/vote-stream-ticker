@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 interface CandidateData {
   name: string;
@@ -14,7 +15,7 @@ interface LeadingCandidatesProps {
   treasurer: CandidateData;
 }
 
-const LeadingCandidates1: React.FC<LeadingCandidatesProps> = ({ president, secretary, treasurer }) => {
+const LeadingCandidates: React.FC<LeadingCandidatesProps> = ({ president, secretary, treasurer }) => {
   const getColorClasses = (color: string) => {
     switch (color) {
       case 'blue':
@@ -29,15 +30,13 @@ const LeadingCandidates1: React.FC<LeadingCandidatesProps> = ({ president, secre
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden h-full">
-      <div className="py-2 px-4 text-white font-bold text-center bg-blue-600">
-       Leading Candidates
-      </div>
+    <div className="bg-white rounded-lg shadow-lg p-3 h-full">
+      <h2 className="text-lg font-bold mb-3 text-center">Leading Parties</h2>
 
       <div className="grid grid-cols-3 gap-2 h-[calc(100%-2rem)]">
         <div className="flex flex-col">
           <div className="bg-blue-50 p-2 rounded-md mb-1 text-center">
-            <h3 className="font-bold text-blue-800 text-sm">President</h3>
+            <h3 className="font-bold text-blue-800 text-sm">Party A</h3>
           </div>
           <div className={cn(
             "relative rounded-md flex-1 flex flex-col justify-between overflow-hidden",
@@ -61,7 +60,7 @@ const LeadingCandidates1: React.FC<LeadingCandidatesProps> = ({ president, secre
 
         <div className="flex flex-col">
           <div className="bg-green-50 p-2 rounded-md mb-1 text-center">
-            <h3 className="font-bold text-green-800 text-sm">Secretary</h3>
+            <h3 className="font-bold text-green-800 text-sm">Party B</h3>
           </div>
           <div className={cn(
             "relative rounded-md flex-1 flex flex-col justify-between overflow-hidden",
@@ -85,7 +84,7 @@ const LeadingCandidates1: React.FC<LeadingCandidatesProps> = ({ president, secre
 
         <div className="flex flex-col">
           <div className="bg-yellow-50 p-2 rounded-md mb-1 text-center">
-            <h3 className="font-bold text-yellow-800 text-sm">Treasurer</h3>
+            <h3 className="font-bold text-yellow-800 text-sm">Party C</h3>
           </div>
           <div className={cn(
             "relative rounded-md flex-1 flex flex-col justify-between overflow-hidden",
@@ -111,4 +110,4 @@ const LeadingCandidates1: React.FC<LeadingCandidatesProps> = ({ president, secre
   );
 };
 
-export default LeadingCandidates1;
+export default LeadingCandidates;
