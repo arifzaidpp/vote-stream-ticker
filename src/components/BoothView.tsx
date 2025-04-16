@@ -68,7 +68,7 @@ const BoothView: React.FC<BoothViewProps> = ({
       <div className="grid grid-cols-5 gap-3 flex-1 overflow-hidden">
         {/* Party cards - left column (3/5 width) */}
         <div className="col-span-3 flex flex-col h-full gap-3">
-          <div className="flex-grow grid grid-cols-3 gap-3 h-[65%]">
+          <div className="flex-grow grid grid-cols-3 gap-3 h-[55%]">
             {partyData.map((party, index) => (
               <PartyCard
                 key={index}
@@ -81,7 +81,7 @@ const BoothView: React.FC<BoothViewProps> = ({
             ))}
           </div>
           
-          <div className="h-[35%]">
+          <div className="h-[45%]">
             <LeadingCandidates1
               president={leadingCandidates.president}
               secretary={leadingCandidates.secretary}
