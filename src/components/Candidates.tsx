@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { booth1Data, booth2Data } from '@/hooks/useElectionData';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -55,19 +54,18 @@ const Candidates = () => {
   }, [allCandidates.length]);
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-2 h-full overflow-hidden">
-      <h2 className="text-lg font-bold mb-1 text-center">Candidate Details</h2>
+    <div className="bg-white rounded-lg shadow-lg p-3 h-full overflow-hidden">
+      <h2 className="text-xl font-bold mb-2 text-center">Candidate Details</h2>
       
       <Carousel 
-        className="h-[calc(100%-2rem)]"
+        className="h-[calc(100%-3rem)]"
         opts={{ loop: true, startIndex: autoPlayIndex }}
-        value={autoPlayIndex}
         onValueChange={setAutoPlayIndex}
       >
         <CarouselContent className="h-full">
           {allCandidates.map((candidate, index) => (
             <CarouselItem key={index} className="h-full">
-              <div className="flex flex-row items-center gap-2 h-full pb-1">
+              <div className="flex flex-row items-center gap-3 h-full pb-2">
                 <div className="flex-shrink-0 w-1/3">
                   <img
                     src={`https://api.dicebear.com/7.x/initials/svg?seed=${candidate.name}`}
@@ -81,11 +79,11 @@ const Candidates = () => {
                       <p className="font-semibold text-base">{candidate.name}</p>
                       <p className="text-xs text-gray-500">{candidate.partyName}</p>
                     </div>
-                    <div className="flex items-center mt-0.5">
+                    <div className="flex items-center">
                       <Badge 
                         variant="outline" 
                         className={cn(
-                          "text-xs",
+                          "text-sm px-3 py-1",
                           candidate.partyColor === 'blue' ? 'bg-blue-100 text-blue-800' : 
                           candidate.partyColor === 'green' ? 'bg-green-100 text-green-800' : 
                           'bg-orange-100 text-orange-800'
@@ -95,6 +93,7 @@ const Candidates = () => {
                       </Badge>
                     </div>
                   </div>
+                  <Table className="w-full">
                   <Table className="w-full">
                     <TableHeader>
                       <TableRow>
@@ -119,6 +118,7 @@ const Candidates = () => {
                           Total
                           {leaders[candidate.position] === candidate.totalVotes && (
                             <Badge variant="secondary" className="bg-green-100 text-green-800 text-sm px-2">
+                            <Badge variant="secondary" className="bg-green-100 text-green-800 text-sm px-2">
                               Leading
                             </Badge>
                           )}
@@ -140,8 +140,8 @@ const Candidates = () => {
             <button
               key={index}
               className={cn(
-                "w-1.5 h-1.5 rounded-full transition-all duration-300",
-                index === autoPlayIndex ? "bg-blue-600 w-3" : "bg-gray-300"
+                "w-2 h-2 rounded-full transition-all duration-300",
+                index === autoPlayIndex ? "bg-blue-600 w-4" : "bg-gray-300"
               )}
               onClick={() => setAutoPlayIndex(index)}
             />
