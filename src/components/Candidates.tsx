@@ -78,7 +78,7 @@ const Candidates = () => {
                 <div className="flex flex-col flex-grow h-full overflow-hidden">
                   <div className="mb-1">
                     <div className="flex justify-between items-center">
-                      <p className="font-semibold text-sm">{candidate.name}</p>
+                      <p className="font-semibold text-base">{candidate.name}</p>
                       <p className="text-xs text-gray-500">{candidate.partyName}</p>
                     </div>
                     <div className="flex items-center mt-0.5">
@@ -95,35 +95,35 @@ const Candidates = () => {
                       </Badge>
                     </div>
                   </div>
-                  <Table className="w-full text-xs">
+                  <Table className="w-full">
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="text-[0.65rem] py-0.5 px-1">Booth</TableHead>
-                        <TableHead className="text-[0.65rem] py-0.5 px-1 text-right">Votes</TableHead>
+                        <TableHead className="text-sm py-1 px-1">Booth</TableHead>
+                        <TableHead className="text-sm py-1 px-1 text-right">Votes</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       <TableRow>
-                        <TableCell className="text-[0.65rem] py-0.5 px-1">Booth 1</TableCell>
-                        <TableCell className="text-[0.65rem] py-0.5 px-1 text-right">{candidate.booth1Votes}</TableCell>
+                        <TableCell className="text-base py-1 px-2">Booth 1</TableCell>
+                        <TableCell className="text-base py-1 px-2 text-right">{candidate.booth1Votes}</TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell className="text-[0.65rem] py-0.5 px-1">Booth 2</TableCell>
-                        <TableCell className="text-[0.65rem] py-0.5 px-1 text-right">{candidate.booth2Votes}</TableCell>
+                        <TableCell className="text-base py-1 px-2">Booth 2</TableCell>
+                        <TableCell className="text-base py-1 px-2 text-right">{candidate.booth2Votes}</TableCell>
                       </TableRow>
                       <TableRow className={cn(
                         "font-medium",
                         leaders[candidate.position] === candidate.totalVotes && "bg-green-50"
                       )}>
-                        <TableCell className="flex items-center gap-1 text-[0.65rem] py-0.5 px-1">
+                        <TableCell className="flex items-center gap-2 text-base py-1 px-2">
                           Total
                           {leaders[candidate.position] === candidate.totalVotes && (
-                            <Badge variant="secondary" className="bg-green-100 text-green-800 text-[0.6rem] px-1 py-0 h-3">
+                            <Badge variant="secondary" className="bg-green-100 text-green-800 text-sm px-2">
                               Leading
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-[0.65rem] py-0.5 px-1 text-right font-bold">
+                        <TableCell className="text-lg py-1 px-2 text-right font-bold">
                           {candidate.booth1Votes + candidate.booth2Votes}
                         </TableCell>
                       </TableRow>
