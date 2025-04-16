@@ -1,25 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
-interface Candidate {
-  name: string;
-  partyName: string;
-  partyColor: string;
-  votes: number;
-  rank: number;
-}
-
-interface CandidateComparisonProps {
-  presidents: Candidate[];
-  secretaries: Candidate[];
-  treasurers: Candidate[];
-}
-
-const CandidateComparison: React.FC<CandidateComparisonProps> = ({ 
-  presidents, secretaries, treasurers 
-}) => {
-  const [activePosition, setActivePosition] = useState<'president' | 'secretary' | 'treasurer'>('president');
+const CandidateComparison = ({ presidents, secretaries, treasurers }) => {
+  const [activePosition, setActivePosition] = useState('president');
   const [transitionActive, setTransitionActive] = useState(false);
   
   useEffect(() => {
@@ -41,7 +24,7 @@ const CandidateComparison: React.FC<CandidateComparisonProps> = ({
     return () => clearInterval(interval);
   }, []);
   
-  const getColorClasses = (color: string) => {
+  const getColorClasses = (color) => {
     switch (color) {
       case 'blue':
         return 'border-blue-500';
@@ -82,7 +65,7 @@ const CandidateComparison: React.FC<CandidateComparisonProps> = ({
       </div>
       
       <div className={cn(
-        "p-2 transition-all duration-1000 opacity-100",
+        "p-2 transition-all duration-1000",
         transitionActive ? 'opacity-0 transform translate-x-full' : 'opacity-100 transform translate-x-0'
       )}>
         <div className="grid grid-cols-3 gap-2">

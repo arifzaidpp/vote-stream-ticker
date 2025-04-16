@@ -1,13 +1,12 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 interface CandidateData {
   name: string;
   partyName: string;
   partyColor: string;
   votes: number;
-  constituency: string;
 }
 
 interface LeadingCandidatesProps {
@@ -17,55 +16,96 @@ interface LeadingCandidatesProps {
 }
 
 const LeadingCandidates: React.FC<LeadingCandidatesProps> = ({ president, secretary, treasurer }) => {
-  const renderCandidateCard = (candidate: CandidateData, role: string) => (
-    <div className="w-full max-w-md bg-white rounded-lg overflow-hidden shadow-lg mb-4">
-      {/* Top section with role */}
-      <div className="bg-gray-800 text-white p-2 flex justify-between items-center text-xl font-bold">
-        <span className="block text-sm font-normal">{candidate.name}</span>
-        <span className="block text-sm font-normal">{role}</span>
-      </div>
-      <div className="flex">
-        {/* Left section with full-height image */}
-        <div className="w-2/5">
-          <img
-            src={`https://api.dicebear.com/7.x/initials/svg?seed=${candidate.name}`}
-            alt={candidate.name}
-            className="w-full h-full object-cover"
-          />
+  const getColorClasses = (color: string) => {
+    switch (color) {
+      case 'blue':
+        return 'bg-blue-600 text-white';
+      case 'green':
+        return 'bg-green-600 text-white';
+      case 'orange':
+        return 'bg-orange-500 text-white';
+      default:
+        return 'bg-gray-600 text-white';
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-lg p-3 h-full">
+      <h2 className="text-lg font-bold mb-3 text-center">Leading Candidates</h2>
+
+      <div className="grid grid-cols-3 gap-2 h-[calc(100%-2rem)]">
+        <div className="flex flex-col">
+          <div className="bg-blue-50 p-2 rounded-md mb-1 text-center">
+            <h3 className="font-bold text-blue-800 text-sm">President</h3>
+          </div>
+          <div className={cn(
+            "relative rounded-md flex-1 flex flex-col justify-between overflow-hidden",
+            getColorClasses(president.partyColor)
+          )}>
+            <img
+              className="absolute inset-0 w-full h-full object-contain"
+              src="https://miro.medium.com/v2/resize:fit:2400/1*32fVfsm5mgnhFHfAbd-Itg.png"
+              alt={president.name}
+            />
+            <div className="relative z-10 p-2 text-right">
+              <div className="text-sm font-semibold">{president.name}</div>
+              <div className="text-xs opacity-80">{president.partyName}</div>
+            </div>
+            <div className="relative z-10 p-2 text-right">
+              <span className="font-bold text-lg">{president.votes}</span>
+              <span className="ml-1 text-xs opacity-80">votes</span>
+            </div>
+          </div>
         </div>
 
-        {/* Right section with content */}
-        <div className="w-3/5 flex flex-col">
-            <div className="p-3 h-3/5 bg-white flex flex-col justify-center">
-            <div className="flex justify-between items-center">
-              <span className="text-2xl font-bold">{candidate.partyName}</span>
-              <span className="text-2xl font-bold">{candidate.votes}</span>
+        <div className="flex flex-col">
+          <div className="bg-green-50 p-2 rounded-md mb-1 text-center">
+            <h3 className="font-bold text-green-800 text-sm">Secretary</h3>
+          </div>
+          <div className={cn(
+            "relative rounded-md flex-1 flex flex-col justify-between overflow-hidden",
+            getColorClasses(secretary.partyColor)
+          )}>
+            <img
+              className="absolute inset-0 w-full h-full object-contain"
+              src="https://miro.medium.com/v2/resize:fit:2400/1*32fVfsm5mgnhFHfAbd-Itg.png"
+              alt={secretary.name}
+            />
+            <div className="relative z-10 p-2 text-right">
+              <div className="text-sm font-semibold">{secretary.name}</div>
+              <div className="text-xs opacity-80">{secretary.partyName}</div>
             </div>
+            <div className="relative z-10 p-2 text-right">
+              <span className="font-bold text-lg">{secretary.votes}</span>
+              <span className="ml-1 text-xs opacity-80">votes</span>
             </div>
+          </div>
+        </div>
 
-          {/* Leading status */}
-          <div
-            className={cn(
-              'p-2 text-white text-center h-2/5 relative',
-              candidate.partyColor === 'blue' ? 'bg-blue-600' :
-                candidate.partyColor === 'green' ? 'bg-green-600' :
-                  candidate.partyColor === 'orange' ? 'bg-orange-500' : 'bg-gray-600'
-            )}
-          >
-            <div className="absolute bottom-2 right-2">
-              <p className="text-2xl p-2 font-bold">Leading...</p>
+        <div className="flex flex-col">
+          <div className="bg-yellow-50 p-2 rounded-md mb-1 text-center">
+            <h3 className="font-bold text-yellow-800 text-sm">Treasurer</h3>
+          </div>
+          <div className={cn(
+            "relative rounded-md flex-1 flex flex-col justify-between overflow-hidden",
+            getColorClasses(treasurer.partyColor)
+          )}>
+            <img
+              className="absolute inset-0 w-full h-full object-contain"
+              src="https://miro.medium.com/v2/resize:fit:2400/1*32fVfsm5mgnhFHfAbd-Itg.png"
+              alt={treasurer.name}
+            />
+            <div className="relative z-10 p-2 text-right">
+              <div className="text-sm font-semibold">{treasurer.name}</div>
+              <div className="text-xs opacity-80">{treasurer.partyName}</div>
+            </div>
+            <div className="relative z-10 p-2 text-right">
+              <span className="font-bold text-lg">{treasurer.votes}</span>
+              <span className="ml-1 text-xs opacity-80">votes</span>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-
-  return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4 space-y-4">
-      {renderCandidateCard(president, 'President')}
-      {renderCandidateCard(secretary, 'Secretary')}
-      {renderCandidateCard(treasurer, 'Treasurer')}
     </div>
   );
 };

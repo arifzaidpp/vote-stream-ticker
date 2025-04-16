@@ -1,8 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import PartyCard from './PartyCard';
 import LeadingCandidates from './LeadingCandidates';
 import VotingStats from './VotingStats';
+import Candidates from './Candidates';
+import CandidateComparison from './CandidateComparison';
 
 interface BoothViewProps {
   boothName: string;
@@ -17,6 +18,11 @@ interface BoothViewProps {
   countingPercentage: number;
   onSwitch: () => void;
   autoSwitchInterval?: number;
+  candidateComparison: {
+    presidents: any[];
+    secretaries: any[];
+    treasurers: any[];
+  };
 }
 
 const BoothView: React.FC<BoothViewProps> = ({
@@ -26,16 +32,17 @@ const BoothView: React.FC<BoothViewProps> = ({
   totalVotes,
   pendingVotes,
   countingPercentage,
+  candidateComparison,
   onSwitch,
-  autoSwitchInterval = 5000 // Changed to 5 seconds for faster switching
+  autoSwitchInterval = 10000 // Default 10 seconds
 }) => {
   useEffect(() => {
     if (!autoSwitchInterval) return;
-    
+
     const interval = setInterval(() => {
       onSwitch();
     }, autoSwitchInterval);
-    
+
     return () => clearInterval(interval);
   }, [onSwitch, autoSwitchInterval]);
 
@@ -55,9 +62,10 @@ const BoothView: React.FC<BoothViewProps> = ({
           LIVE
         </div>
       </div>
-      
-      <div className="grid grid-cols-4 gap-3 h-[calc(100%-3rem)]">
-        <div className="col-span-3">
+
+      <div className="grid grid-rows-8 gap-3 h-full">
+        {/* Party cards moved to left side (3 columns) */}
+        <div className="row-span-5">
           <div className="grid grid-cols-3 gap-3 h-full">
             {partyData.map((party, index) => (
               <PartyCard
@@ -66,25 +74,41 @@ const BoothView: React.FC<BoothViewProps> = ({
                 color={party.color}
                 candidates={party.candidates}
                 boothName={boothName}
+                logo={party.logo}
               />
             ))}
           </div>
         </div>
-        
-        <div className="col-span-1">
+
+        {/* Leading candidates and voting stats moved to right side (2 columns) */}
+        {/* <div className="col-span-2">
           <div className="grid grid-rows-2 gap-3 h-full">
-            <LeadingCandidates 
+            <LeadingCandidates
               president={leadingCandidates.president}
               secretary={leadingCandidates.secretary}
               treasurer={leadingCandidates.treasurer}
             />
-            <VotingStats
-              totalVotes={totalVotes}
-              pendingVotes={pendingVotes}
-              countingPercentage={countingPercentage}
-            />
+
+            <div className="grid grid-rows-2 gap-3 h-full">
+              <Candidates
+              />
+
+              <VotingStats
+                totalVotes={totalVotes}
+                pendingVotes={pendingVotes}
+                countingPercentage={countingPercentage}
+              />
+            </div>
           </div>
-        </div>
+        </div> */}
+
+        <div className="row-span-3">
+                    <CandidateComparison
+                      presidents={candidateComparison.presidents}
+                      secretaries={candidateComparison.secretaries}
+                      treasurers={candidateComparison.treasurers}
+                    />
+                  </div>
       </div>
     </div>
   );

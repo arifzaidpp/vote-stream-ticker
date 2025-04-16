@@ -1,24 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
-interface Candidate {
-  name: string;
-  position: string;
-  votes: number;
-}
-
-interface PartyCardProps {
-  partyName: string;
-  color: string;
-  candidates: Candidate[];
-  boothName?: string;
-  logo?: string;
-}
-
-const PartyCard: React.FC<PartyCardProps> = ({ partyName, color, candidates, boothName, logo }) => {
-  const [voteUpdated, setVoteUpdated] = useState<{ [key: string]: boolean }>({});
+const PartyCard = ({ partyName, color, candidates, boothName, logo }) => {
+  const [voteUpdated, setVoteUpdated] = useState({});
   
   useEffect(() => {
     candidates.forEach(candidate => {
@@ -69,7 +54,7 @@ const PartyCard: React.FC<PartyCardProps> = ({ partyName, color, candidates, boo
         )}
       </div>
       
-      <div className="bg-white p-3">
+      <div className="bg-white p-3 overflow-auto h-[calc(150%-21rem)]">
         {candidates.map((candidate, index) => {
           const key = `${candidate.name}-${candidate.position}`;
           return (

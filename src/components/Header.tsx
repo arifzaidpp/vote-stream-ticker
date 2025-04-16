@@ -1,4 +1,5 @@
 
+import { Award } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
 const Header = () => {
@@ -33,9 +34,12 @@ const Header = () => {
   return (
     <div className="bg-gradient-to-r from-blue-800 to-blue-900 text-white py-3 px-4 shadow-md">
       <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
-        <h1 className="text-2xl md:text-3xl font-bold text-center md:text-left">
-          DUIDC Election 2025
-        </h1>
+        <div className="flex items-center space-x-2">
+          <Award className="h-8 w-8 text-yellow-500" />
+          <h1 className="text-2xl md:text-3xl font-bold text-center md:text-left">
+            DUIDC Election 2025
+          </h1>
+        </div>
         
         <div className="flex flex-col items-center md:items-end">
           <p className="text-sm md:text-base font-medium">{formatDate(currentTime)}</p>
