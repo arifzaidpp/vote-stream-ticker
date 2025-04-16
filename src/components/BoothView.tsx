@@ -49,26 +49,26 @@ const BoothView: React.FC<BoothViewProps> = ({
   }, [onSwitch, autoSwitchInterval]);
 
   return (
-    <div className="h-full w-full">
-      <div className="bg-gray-800 text-white py-1 px-4 mb-3 flex justify-between items-center">
-        <h2 className="text-lg font-bold">{boothName} Results</h2>
-        <div className="py-1 flex-1 mx-4 overflow-hidden">
+    <div className="h-full w-full flex flex-col">
+      <div className="bg-gray-800 text-white py-1 px-2 mb-2 flex justify-between items-center rounded-md">
+        <h2 className="text-base font-bold">{boothName} Results</h2>
+        <div className="py-0.5 flex-1 mx-2 overflow-hidden">
           <div className="container mx-auto overflow-hidden">
-            <p className="animate-ticker whitespace-nowrap text-sm">
+            <p className="animate-ticker whitespace-nowrap text-xs">
               ⚡ LIVE UPDATES - Counting Underway - Third Round of Counting in Progress - 65% of Votes Counted - Stay Tuned for Final Results
             </p>
           </div>
         </div>
-        <div className="flex items-center bg-blue-600 px-2 py-1 rounded text-xs">
-          <span className="animate-pulse mr-1 h-2 w-2 bg-red-500 rounded-full inline-block"></span>
+        <div className="flex items-center bg-blue-600 px-2 py-0.5 rounded text-xs">
+          <span className="animate-pulse mr-1 h-1.5 w-1.5 bg-red-500 rounded-full inline-block"></span>
           LIVE
         </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-3 h-[calc(100%-40px)]">
+      <div className="grid grid-cols-5 gap-2 flex-1 overflow-hidden">
         {/* Party cards - left column (3/5 width) */}
-        <div className="col-span-3 h-[calc(100%-5rem)] grid grid-rows-5 gap-3">
-          <div className="row-span-3 grid grid-cols-3 gap-3">
+        <div className="col-span-3 flex flex-col h-full gap-2">
+          <div className="flex-grow grid grid-cols-3 gap-2 h-[65%]">
             {partyData.map((party, index) => (
               <PartyCard
                 key={index}
@@ -81,7 +81,7 @@ const BoothView: React.FC<BoothViewProps> = ({
             ))}
           </div>
           
-          <div className="row-span-2">
+          <div className="h-[35%]">
             <LeadingCandidates1
               president={leadingCandidates.president}
               secretary={leadingCandidates.secretary}
@@ -91,27 +91,25 @@ const BoothView: React.FC<BoothViewProps> = ({
         </div>
 
         {/* Right column (2/5 width) */}
-        <div className="col-span-2 h-[calc(100%-5rem)]">
-          <div className="grid grid-rows-3 gap-3 h-full">
-            <div className="row-span-1">
-              <LeadingCandidates
-                president={leadingCandidates.president}
-                secretary={leadingCandidates.secretary}
-                treasurer={leadingCandidates.treasurer}
-              />
-            </div>
-            
-            <div className="row-span-1">
-              <Candidates />
-            </div>
-            
-            <div className="row-span-1">
-              <VotingStats
-                totalVotes={totalVotes}
-                pendingVotes={pendingVotes}
-                countingPercentage={countingPercentage}
-              />
-            </div>
+        <div className="col-span-2 flex flex-col gap-2 h-full">
+          <div className="h-[32%]">
+            <LeadingCandidates
+              president={leadingCandidates.president}
+              secretary={leadingCandidates.secretary}
+              treasurer={leadingCandidates.treasurer}
+            />
+          </div>
+          
+          <div className="h-[34%]">
+            <Candidates />
+          </div>
+          
+          <div className="h-[32%]">
+            <VotingStats
+              totalVotes={totalVotes}
+              pendingVotes={pendingVotes}
+              countingPercentage={countingPercentage}
+            />
           </div>
         </div>
       </div>

@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface CandidateData {
   name: string;
@@ -28,84 +30,80 @@ const LeadingCandidates1: React.FC<LeadingCandidatesProps> = ({ president, secre
     }
   };
 
+  const [animate, setAnimate] = useState(false);
+
+  useEffect(() => {
+    // Trigger animation periodically
+    const interval = setInterval(() => {
+      setAnimate(true);
+      setTimeout(() => setAnimate(false), 1000);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const positions = [
+    { title: 'President', color: 'bg-blue-50', textColor: 'text-blue-800', candidate: president },
+    { title: 'Secretary', color: 'bg-green-50', textColor: 'text-green-800', candidate: secretary },
+    { title: 'Treasurer', color: 'bg-yellow-50', textColor: 'text-yellow-800', candidate: treasurer }
+  ];
+
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden h-full">
-      <div className="py-2 px-4 text-white font-bold text-center bg-blue-600">
-       Leading Candidates
-      </div>
+      <motion.div 
+        className="py-2 px-4 text-white font-bold text-center bg-blue-600"
+        animate={animate ? { backgroundColor: ['#2563eb', '#3b82f6', '#2563eb'] } : {}}
+        transition={{ duration: 0.5 }}
+      >
+        Leading Candidates
+      </motion.div>
 
-      <div className="grid grid-cols-3 gap-2 h-[calc(100%-2rem)]">
-        <div className="flex flex-col">
-          <div className="bg-blue-50 p-2 rounded-md mb-1 text-center">
-            <h3 className="font-bold text-blue-800 text-sm">President</h3>
+      <div className="grid grid-cols-3 gap-2 p-2 h-[calc(100%-2.5rem)]">
+        {positions.map((position, index) => (
+          <div key={index} className="flex flex-col">
+            <motion.div 
+              className={cn("p-1.5 rounded-md mb-1 text-center", position.color)}
+              animate={animate ? { y: [0, -3, 0] } : {}}
+              transition={{ duration: 0.5 }}
+            >
+              <h3 className={cn("font-bold text-sm", position.textColor)}>{position.title}</h3>
+            </motion.div>
+            <motion.div 
+              className={cn(
+                "relative rounded-md flex-1 flex flex-col justify-between overflow-hidden",
+                getColorClasses(position.candidate.partyColor)
+              )}
+              whileHover={{ scale: 1.03 }}
+              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            >
+              <motion.div 
+                className="absolute inset-0 bg-gradient-to-tr from-black/30 to-transparent"
+                initial={{ opacity: 0.5 }}
+                animate={{ opacity: [0.3, 0.5, 0.3] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              />
+              <motion.img
+                className="absolute inset-0 w-full h-full object-cover opacity-40"
+                src={`https://api.dicebear.com/7.x/initials/svg?seed=${position.candidate.name}`}
+                alt={position.candidate.name}
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 10, repeat: Infinity }}
+              />
+              <div className="relative z-10 p-2 text-right">
+                <div className="text-sm font-semibold">{position.candidate.name}</div>
+                <div className="text-xs opacity-80">{position.candidate.partyName}</div>
+              </div>
+              <motion.div 
+                className="relative z-10 p-2 text-right"
+                animate={animate ? { scale: [1, 1.2, 1] } : {}}
+                transition={{ duration: 0.5 }}
+              >
+                <span className="font-bold text-lg">{position.candidate.votes}</span>
+                <span className="ml-1 text-xs opacity-80">votes</span>
+              </motion.div>
+            </motion.div>
           </div>
-          <div className={cn(
-            "relative rounded-md flex-1 flex flex-col justify-between overflow-hidden",
-            getColorClasses(president.partyColor)
-          )}>
-            <img
-              className="absolute inset-0 w-full h-full object-contain"
-              src="https://miro.medium.com/v2/resize:fit:2400/1*32fVfsm5mgnhFHfAbd-Itg.png"
-              alt={president.name}
-            />
-            <div className="relative z-10 p-2 text-right">
-              <div className="text-sm font-semibold">{president.name}</div>
-              <div className="text-xs opacity-80">{president.partyName}</div>
-            </div>
-            <div className="relative z-10 p-2 text-right">
-              <span className="font-bold text-lg">{president.votes}</span>
-              <span className="ml-1 text-xs opacity-80">votes</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col">
-          <div className="bg-green-50 p-2 rounded-md mb-1 text-center">
-            <h3 className="font-bold text-green-800 text-sm">Secretary</h3>
-          </div>
-          <div className={cn(
-            "relative rounded-md flex-1 flex flex-col justify-between overflow-hidden",
-            getColorClasses(secretary.partyColor)
-          )}>
-            <img
-              className="absolute inset-0 w-full h-full object-contain"
-              src="https://miro.medium.com/v2/resize:fit:2400/1*32fVfsm5mgnhFHfAbd-Itg.png"
-              alt={secretary.name}
-            />
-            <div className="relative z-10 p-2 text-right">
-              <div className="text-sm font-semibold">{secretary.name}</div>
-              <div className="text-xs opacity-80">{secretary.partyName}</div>
-            </div>
-            <div className="relative z-10 p-2 text-right">
-              <span className="font-bold text-lg">{secretary.votes}</span>
-              <span className="ml-1 text-xs opacity-80">votes</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col">
-          <div className="bg-yellow-50 p-2 rounded-md mb-1 text-center">
-            <h3 className="font-bold text-yellow-800 text-sm">Treasurer</h3>
-          </div>
-          <div className={cn(
-            "relative rounded-md flex-1 flex flex-col justify-between overflow-hidden",
-            getColorClasses(treasurer.partyColor)
-          )}>
-            <img
-              className="absolute inset-0 w-full h-full object-contain"
-              src="https://miro.medium.com/v2/resize:fit:2400/1*32fVfsm5mgnhFHfAbd-Itg.png"
-              alt={treasurer.name}
-            />
-            <div className="relative z-10 p-2 text-right">
-              <div className="text-sm font-semibold">{treasurer.name}</div>
-              <div className="text-xs opacity-80">{treasurer.partyName}</div>
-            </div>
-            <div className="relative z-10 p-2 text-right">
-              <span className="font-bold text-lg">{treasurer.votes}</span>
-              <span className="ml-1 text-xs opacity-80">votes</span>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );

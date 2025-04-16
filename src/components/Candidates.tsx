@@ -1,13 +1,20 @@
-import React from 'react';
-import { useElectionData } from '@/hooks/useElectionData';
+
+import React, { useEffect, useState } from 'react';
+import { booth1Data, booth2Data } from '@/hooks/useElectionData';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { booth1Data, booth2Data } from '@/hooks/useElectionData';
+import { 
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext
+} from '@/components/ui/carousel';
 
 const Candidates = () => {
-  const { totalData } = useElectionData();
-
+  const [autoPlayIndex, setAutoPlayIndex] = useState(0);
+  
   // Flatten candidates data with party information
   const allCandidates = booth1Data.flatMap(party =>
     party.candidates.map(candidate => ({
@@ -17,12 +24,14 @@ const Candidates = () => {
       booth1Votes: candidate.votes,
       booth2Votes: booth2Data.find(p => p.partyName === party.partyName)
         ?.candidates.find(c => c.name === candidate.name)?.votes || 0,
-      totalVotes: totalData.find(p => p.partyName === party.partyName)
+      totalVotes: booth1Data.find(p => p.partyName === party.partyName)
+        ?.candidates.find(c => c.name === candidate.name)?.votes || 0 +
+        booth2Data.find(p => p.partyName === party.partyName)
         ?.candidates.find(c => c.name === candidate.name)?.votes || 0
     }))
   );
 
-  // Sort candidates by total votes to determine leaders
+  // Sort candidates by position
   const sortedByPosition = allCandidates.reduce((acc, candidate) => {
     if (!acc[candidate.position]) {
       acc[candidate.position] = [];
@@ -37,60 +46,109 @@ const Candidates = () => {
     return acc;
   }, {} as Record<string, number>);
 
-  // Display the first candidate
-  const candidate = allCandidates[0];
+  // Set up auto play for carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAutoPlayIndex((current) => (current + 1) % allCandidates.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [allCandidates.length]);
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-4 h-full flex flex-row items-center gap-4">
-      <div className="flex-shrink-0 w-1/3">
-        <img
-          src={`https://api.dicebear.com/7.x/initials/svg?seed=${candidate.name}`}
-          alt={candidate.name}
-          className="w-full h-auto"
-        />
-      </div>
-      <div className="flex flex-col flex-grow">
-        <div className="mb-4">
-            <div className="flex justify-between items-center">
-            <p className="font-semibold text-lg">{candidate.name}</p>
-            <p className="text-sm text-gray-500">{candidate.partyName}</p>
-            </div>
+    <div className="bg-white rounded-lg shadow-lg p-2 h-full overflow-hidden">
+      <h2 className="text-lg font-bold mb-1 text-center">Candidate Details</h2>
+      
+      <Carousel 
+        className="h-[calc(100%-2rem)]"
+        opts={{ loop: true, startIndex: autoPlayIndex }}
+        value={autoPlayIndex}
+        onValueChange={setAutoPlayIndex}
+      >
+        <CarouselContent className="h-full">
+          {allCandidates.map((candidate, index) => (
+            <CarouselItem key={index} className="h-full">
+              <div className="flex flex-row items-center gap-2 h-full pb-1">
+                <div className="flex-shrink-0 w-1/3">
+                  <img
+                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${candidate.name}`}
+                    alt={candidate.name}
+                    className="w-full h-auto rounded-md border-2 border-gray-200"
+                  />
+                </div>
+                <div className="flex flex-col flex-grow h-full overflow-hidden">
+                  <div className="mb-1">
+                    <div className="flex justify-between items-center">
+                      <p className="font-semibold text-sm">{candidate.name}</p>
+                      <p className="text-xs text-gray-500">{candidate.partyName}</p>
+                    </div>
+                    <div className="flex items-center mt-0.5">
+                      <Badge 
+                        variant="outline" 
+                        className={cn(
+                          "text-xs",
+                          candidate.partyColor === 'blue' ? 'bg-blue-100 text-blue-800' : 
+                          candidate.partyColor === 'green' ? 'bg-green-100 text-green-800' : 
+                          'bg-orange-100 text-orange-800'
+                        )}
+                      >
+                        {candidate.position}
+                      </Badge>
+                    </div>
+                  </div>
+                  <Table className="w-full text-xs">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-[0.65rem] py-0.5 px-1">Booth</TableHead>
+                        <TableHead className="text-[0.65rem] py-0.5 px-1 text-right">Votes</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell className="text-[0.65rem] py-0.5 px-1">Booth 1</TableCell>
+                        <TableCell className="text-[0.65rem] py-0.5 px-1 text-right">{candidate.booth1Votes}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="text-[0.65rem] py-0.5 px-1">Booth 2</TableCell>
+                        <TableCell className="text-[0.65rem] py-0.5 px-1 text-right">{candidate.booth2Votes}</TableCell>
+                      </TableRow>
+                      <TableRow className={cn(
+                        "font-medium",
+                        leaders[candidate.position] === candidate.totalVotes && "bg-green-50"
+                      )}>
+                        <TableCell className="flex items-center gap-1 text-[0.65rem] py-0.5 px-1">
+                          Total
+                          {leaders[candidate.position] === candidate.totalVotes && (
+                            <Badge variant="secondary" className="bg-green-100 text-green-800 text-[0.6rem] px-1 py-0 h-3">
+                              Leading
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-[0.65rem] py-0.5 px-1 text-right font-bold">
+                          {candidate.booth1Votes + candidate.booth2Votes}
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        
+        <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-1 pb-1">
+          {allCandidates.map((_, index) => (
+            <button
+              key={index}
+              className={cn(
+                "w-1.5 h-1.5 rounded-full transition-all duration-300",
+                index === autoPlayIndex ? "bg-blue-600 w-3" : "bg-gray-300"
+              )}
+              onClick={() => setAutoPlayIndex(index)}
+            />
+          ))}
         </div>
-        <Table className="w-full">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="text-xs p-1">Booth</TableHead>
-              <TableHead className="text-xs p-1 text-right">Votes</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow>
-              <TableCell className="text-xs py-0.5 px-1">Booth 1</TableCell>
-              <TableCell className="text-xs py-0.5 px-1 text-right">{candidate.booth1Votes}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className="text-xs py-0.5 px-1">Booth 2</TableCell>
-              <TableCell className="text-xs py-0.5 px-1 text-right">{candidate.booth2Votes}</TableCell>
-            </TableRow>
-            <TableRow className={cn(
-              "font-medium",
-              leaders[candidate.position] === candidate.totalVotes && "bg-green-50"
-            )}>
-              <TableCell className="flex items-center gap-1 text-xs py-0.5 px-1">
-                Total
-                {leaders[candidate.position] === candidate.totalVotes && (
-                  <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs px-1 py-0 h-4">
-                    Leading
-                  </Badge>
-                )}
-              </TableCell>
-              <TableCell className="text-xs py-0.5 px-1 text-right">{candidate.totalVotes}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </div>
+      </Carousel>
     </div>
-
   );
 };
 
