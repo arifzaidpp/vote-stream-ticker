@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import PartyCard from '@/components/PartyCard';
@@ -331,52 +330,17 @@ const Index = () => {
       <Header />
       
       <main className="flex-1 overflow-hidden p-3">
-        <div className="grid grid-cols-5 gap-3 h-full">
-          {/* Top row - Active view (70% height) */}
-          <div className="col-span-3">
-            <BoothView
-              boothName={getActiveViewTitle()}
-              partyData={activeViewStats.data}
-              leadingCandidates={leadingCandidates}
-              totalVotes={activeViewStats.totalVotes}
-              pendingVotes={activeViewStats.pendingVotes}
-              countingPercentage={activeViewStats.countingPercentage}
-              onSwitch={handleViewSwitch}
-              autoSwitchInterval={10000}
-              candidateComparison={candidateComparison}
-            />
-          </div>
-          
-          {/* Bottom row - Candidate comparison (30% height) */}
-          {/* <div className="row-span-2 w-2/3">
-            <CandidateComparison
-              presidents={candidateComparison.presidents}
-              secretaries={candidateComparison.secretaries}
-              treasurers={candidateComparison.treasurers}
-            />
-          </div> */}
-          {/* Leading candidates and voting stats moved to right side (2 columns) */}
-                  <div className="col-span-2">
-                    <div className="grid grid-rows-3 gap-3 h-full">
-                      <LeadingCandidates
-                        president={leadingCandidates.president}
-                        secretary={leadingCandidates.secretary}
-                        treasurer={leadingCandidates.treasurer}
-                      />
-          
-                      {/* <div className="grid grid-rows-2 gap-3 h-full"> */}
-                        <Candidates
-                        />
-          
-                        <VotingStats
-                          totalVotes={totalVotes}
-                          pendingVotes={pendingVotes}
-                          countingPercentage={countingPercentage}
-                        />
-                      {/* </div> */}
-                    </div>
-                  </div>
-        </div>
+        <BoothView
+          boothName={getActiveViewTitle()}
+          partyData={activeViewStats.data}
+          leadingCandidates={leadingCandidates}
+          totalVotes={activeViewStats.totalVotes}
+          pendingVotes={activeViewStats.pendingVotes}
+          countingPercentage={activeViewStats.countingPercentage}
+          onSwitch={handleViewSwitch}
+          autoSwitchInterval={10000}
+          candidateComparison={candidateComparison}
+        />
       </main>
       
       {/* Breaking News Ticker */}

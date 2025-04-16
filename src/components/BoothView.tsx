@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import PartyCard from './PartyCard';
 import LeadingCandidates from './LeadingCandidates';
@@ -50,23 +51,23 @@ const BoothView: React.FC<BoothViewProps> = ({
     <div className="h-full w-full">
       <div className="bg-gray-800 text-white py-1 px-4 mb-3 flex justify-between items-center">
         <h2 className="text-lg font-bold">{boothName} Results</h2>
-        <div className=" py-1">
-        <div className="container mx-auto overflow-hidden">
-          <p className="animate-ticker whitespace-nowrap text-sm">
-            ⚡ LIVE UPDATES - Counting Underway - Third Round of Counting in Progress - 65% of Votes Counted - Stay Tuned for Final Results
-          </p>
+        <div className="py-1 flex-1 mx-4 overflow-hidden">
+          <div className="container mx-auto overflow-hidden">
+            <p className="animate-ticker whitespace-nowrap text-sm">
+              ⚡ LIVE UPDATES - Counting Underway - Third Round of Counting in Progress - 65% of Votes Counted - Stay Tuned for Final Results
+            </p>
+          </div>
         </div>
-      </div>
         <div className="flex items-center bg-blue-600 px-2 py-1 rounded text-xs">
           <span className="animate-pulse mr-1 h-2 w-2 bg-red-500 rounded-full inline-block"></span>
           LIVE
         </div>
       </div>
 
-      <div className="grid grid-rows-8 gap-3 h-full">
-        {/* Party cards moved to left side (3 columns) */}
-        <div className="row-span-5">
-          <div className="grid grid-cols-3 gap-3 h-full">
+      <div className="grid grid-cols-5 gap-3 h-[calc(100%-40px)]">
+        {/* Party cards - left column (3/5 width) */}
+        <div className="col-span-3 h-full grid grid-rows-5 gap-3">
+          <div className="row-span-3 grid grid-cols-3 gap-3">
             {partyData.map((party, index) => (
               <PartyCard
                 key={index}
@@ -78,21 +79,32 @@ const BoothView: React.FC<BoothViewProps> = ({
               />
             ))}
           </div>
+          
+          <div className="row-span-2">
+            <CandidateComparison
+              presidents={candidateComparison.presidents}
+              secretaries={candidateComparison.secretaries}
+              treasurers={candidateComparison.treasurers}
+            />
+          </div>
         </div>
 
-        {/* Leading candidates and voting stats moved to right side (2 columns) */}
-        {/* <div className="col-span-2">
-          <div className="grid grid-rows-2 gap-3 h-full">
-            <LeadingCandidates
-              president={leadingCandidates.president}
-              secretary={leadingCandidates.secretary}
-              treasurer={leadingCandidates.treasurer}
-            />
-
-            <div className="grid grid-rows-2 gap-3 h-full">
-              <Candidates
+        {/* Right column (2/5 width) */}
+        <div className="col-span-2 h-full">
+          <div className="grid grid-rows-3 gap-3 h-full">
+            <div className="row-span-1">
+              <LeadingCandidates
+                president={leadingCandidates.president}
+                secretary={leadingCandidates.secretary}
+                treasurer={leadingCandidates.treasurer}
               />
-
+            </div>
+            
+            <div className="row-span-1">
+              <Candidates />
+            </div>
+            
+            <div className="row-span-1">
               <VotingStats
                 totalVotes={totalVotes}
                 pendingVotes={pendingVotes}
@@ -100,15 +112,7 @@ const BoothView: React.FC<BoothViewProps> = ({
               />
             </div>
           </div>
-        </div> */}
-
-        <div className="row-span-3">
-                    <CandidateComparison
-                      presidents={candidateComparison.presidents}
-                      secretaries={candidateComparison.secretaries}
-                      treasurers={candidateComparison.treasurers}
-                    />
-                  </div>
+        </div>
       </div>
     </div>
   );
