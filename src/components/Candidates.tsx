@@ -41,62 +41,62 @@ const Candidates = () => {
   }, {} as Record<string, number>);
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-3 h-full">
-      <h2 className="text-lg font-bold mb-4 text-center">Candidates</h2>
+    <div className="bg-white rounded-lg shadow-lg p-2 h-full flex flex-col">
+      <h2 className="text-lg font-bold mb-2 text-center">Candidates</h2>
       
       <Carousel
         opts={{
           align: "start",
           loop: true,
         }}
-        className="w-full"
+        className="w-full flex-1"
       >
-        <CarouselContent>
+        <CarouselContent className="h-full">
           {allCandidates.map((candidate, index) => (
-            <CarouselItem key={index} className="md:basis-full lg:basis-full">
-              <div className="flex gap-4 p-2">
-                <div className="flex flex-col items-center space-y-2 w-1/3">
-                  <Avatar className="h-24 w-24">
+            <CarouselItem key={index} className="md:basis-full lg:basis-full h-full">
+              <div className="flex flex-col sm:flex-row h-full gap-2 p-1">
+                <div className="flex flex-col items-center justify-center space-y-1 w-full sm:w-1/3">
+                  <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
                     <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${candidate.name}`} />
                     <AvatarFallback>{candidate.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                   </Avatar>
                   <div className="text-center">
-                    <p className="font-semibold">{candidate.name}</p>
-                    <p className="text-sm text-gray-500">{candidate.partyName}</p>
+                    <p className="font-semibold text-sm">{candidate.name}</p>
+                    <p className="text-xs text-gray-500">{candidate.partyName}</p>
                     <p className="text-xs text-gray-500">{candidate.position}</p>
                   </div>
                 </div>
 
-                <div className="w-2/3">
-                  <Table>
+                <div className="w-full sm:w-2/3">
+                  <Table className="w-full">
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Booth</TableHead>
-                        <TableHead className="text-right">Votes</TableHead>
+                        <TableHead className="text-xs p-2">Booth</TableHead>
+                        <TableHead className="text-xs p-2 text-right">Votes</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       <TableRow>
-                        <TableCell>Booth 1</TableCell>
-                        <TableCell className="text-right">{candidate.booth1Votes}</TableCell>
+                        <TableCell className="text-xs py-1 px-2">Booth 1</TableCell>
+                        <TableCell className="text-xs py-1 px-2 text-right">{candidate.booth1Votes}</TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell>Booth 2</TableCell>
-                        <TableCell className="text-right">{candidate.booth2Votes}</TableCell>
+                        <TableCell className="text-xs py-1 px-2">Booth 2</TableCell>
+                        <TableCell className="text-xs py-1 px-2 text-right">{candidate.booth2Votes}</TableCell>
                       </TableRow>
                       <TableRow className={cn(
                         "font-medium",
                         leaders[candidate.position] === candidate.totalVotes && "bg-green-50"
                       )}>
-                        <TableCell className="flex items-center gap-2">
+                        <TableCell className="flex items-center gap-1 text-xs py-1 px-2">
                           Total
                           {leaders[candidate.position] === candidate.totalVotes && (
-                            <Badge variant="secondary" className="bg-green-100 text-green-800">
+                            <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs px-1 py-0">
                               Leading
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-right">{candidate.totalVotes}</TableCell>
+                        <TableCell className="text-xs py-1 px-2 text-right">{candidate.totalVotes}</TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>
@@ -105,8 +105,10 @@ const Candidates = () => {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
+        <div className="flex justify-center mt-1">
+          <CarouselPrevious className="static translate-y-0 h-6 w-6 mr-2" />
+          <CarouselNext className="static translate-y-0 h-6 w-6" />
+        </div>
       </Carousel>
     </div>
   );
