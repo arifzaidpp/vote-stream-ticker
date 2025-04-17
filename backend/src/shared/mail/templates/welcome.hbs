@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Thelicham Webzine</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .logo {
+      max-width: 150px;
+      margin-bottom: 15px;
+    }
+    h1 {
+      color: #1a365d;
+      margin-bottom: 20px;
+    }
+    p {
+      margin-bottom: 15px;
+    }
+    .cta-button {
+      display: inline-block;
+      background-color: #1a365d;
+      color: white !important;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 0.8em;
+      color: #666;
+      border-top: 1px solid #eee;
+      padding-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="{{url}}/images/logo.png" alt="Thelicham Webzine Logo" class="logo">
+    <h1>Welcome to Thelicham Webzine!</h1>
+  </div>
+
+  <p>Dear {{name}},</p>
+
+  <p>Thank you for joining Thelicham Webzine. We're excited to have you as part of our community of readers interested in Malayalam literature, art, and culture.</p>
+
+  <p>With your account, you can:</p>
+  <ul>
+    <li>Access premium content and special issues</li>
+    <li>Bookmark articles to read later</li>
+    <li>Engage with other readers through comments</li>
+    <li>Subscribe to get unlimited access to all content</li>
+  </ul>
+
+  <p>We invite you to explore our latest articles and discover new writers and perspectives.</p>
+
+  <div style="text-align: center;">
+    <a href="{{url}}/explore" class="cta-button">Start Exploring</a>
+  </div>
+
+  <p>If you have any questions or need assistance, please don't hesitate to contact our support team at <a href="mailto:support@thelicham.com">support@thelicham.com</a>.</p>
+
+  <p>Happy reading!</p>
+
+  <p>Warm regards,<br>
+  The Thelicham Webzine Team</p>
+
+  <div class="footer">
+    <p>© {{currentYear}} Thelicham Webzine. All rights reserved.</p>
+    <p>
+      <a href="{{url}}/privacy-policy">Privacy Policy</a> | 
+      <a href="{{url}}/terms-of-service">Terms of Service</a> | 
+      <a href="{{url}}/contact">Contact Us</a>
+    </p>
+  </div>
+</body>
+</html>

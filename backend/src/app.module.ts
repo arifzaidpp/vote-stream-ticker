@@ -11,7 +11,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { join } from 'path';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
-import * as depthLimit from 'graphql-depth-limit';
+import depthLimit from 'graphql-depth-limit';
 
 // Configuration imports
 import appConfig from './config/app.config';
@@ -19,7 +19,10 @@ import databaseConfig from './config/database.config';
 import authConfig from './config/auth.config';
 import storageConfig from './config/storage.config';
 import cacheConfig from './config/cache.config';
+import paymentConfig from './config/payment.config';
 import graphqlConfig from './config/graphql.config';
+import mailConfig from './config/mail.config';
+import analyticsConfig from './config/analytics.config';
 
 // Filters and middleware
 import { RequestLoggerMiddleware } from './common/logging/request-logger.middleware';
@@ -33,25 +36,24 @@ import { NotFoundExceptionFilter } from './common/filters/not-found-exception.fi
 // Modules
 import { PrismaModule } from './shared/prisma/prisma.module';
 import { LoggingModule } from './common/logging/logging.module';
-// import { AuthModule } from './modules/auth/auth.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { MailModule } from './shared/mail/mail.module';
 
 // Providers and controllers
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AppResolver } from './app.resolver';
 import { ScheduleModule } from '@nestjs/schedule';
 
 
 // Other imports
 import { ThrottlerModule, ThrottlerStorageService } from '@nestjs/throttler';
 import { CustomThrottlerGuard } from './common/guards/throttler.guard';
-import { AppResolver } from './app.resolver';
-import { AuthModule } from './modules/auth/auth.module';
 
 // Other imports
 
 @Module({
   imports: [
-    AppResolver,
     // Configuration
     ConfigModule.forRoot({
       isGlobal: true,
@@ -61,7 +63,10 @@ import { AuthModule } from './modules/auth/auth.module';
         authConfig,
         storageConfig,
         cacheConfig,
+        paymentConfig,
         graphqlConfig,
+        mailConfig,
+        analyticsConfig,
       ],
     }),
 
@@ -208,14 +213,14 @@ import { AuthModule } from './modules/auth/auth.module';
     PrismaModule,
     // Logging
     LoggingModule,
-    // AuthModule,
-    // Modules
     AuthModule,
-
+    // Modules
+    MailModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
+    AppResolver,
     {
       provide: APP_FILTER,
       useClass: PrismaExceptionFilter,

@@ -2,6 +2,127 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input ChangePasswordInput {
+  currentPassword: String!
+  newPassword: String!
+}
+
+input CreateUserDto {
+  email: String!
+  password: String!
+  profile: UserProfileInput
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+input ForgotPasswordDto {
+  email: String!
+}
+
+input LoginDto {
+  email: String!
+  password: String!
+}
+
+type LoginResponse {
+  user: User!
+}
+
+type Mutation {
+  changePassword(input: ChangePasswordInput!): SuccessResponse!
+  login(input: LoginDto!): LoginResponse!
+  logout: SuccessResponse!
+  register(input: CreateUserDto!): SuccessResponse!
+  requestPasswordReset(input: ForgotPasswordDto!): SuccessResponse!
+  resendVerificationEmail(email: String!): SuccessResponse!
+  resetPassword(input: ResetPasswordDto!): SuccessResponse!
+  setPasswordForOAuthUser(input: SetPasswordInput!): SuccessResponse!
+  updateUserProfile(input: UpdateProfileInput!): User!
+  verifyEmail(input: VerifyEmailDto!): VerifyEmailResponse!
+}
+
+input PaginationInput {
+  skip: Int! = 0
+  take: Int! = 10
+}
+
 type Query {
   getHello: String!
+  me: User!
+  userById(id: Int!): User!
+  users(pagination: PaginationInput): UserPaginated!
+}
+
+input ResetPasswordDto {
+  password: String!
+  token: String!
+}
+
+input SetPasswordInput {
+  password: String!
+}
+
+type SuccessResponse {
+  message: String
+  success: Boolean!
+}
+
+input UpdateProfileInput {
+  """URL to user avatar/profile image"""
+  avatarUrl: String
+  fullName: String
+}
+
+type User {
+  createdAt: DateTime
+  email: String
+  googleId: String
+  id: ID
+  isAuthor: Boolean
+  isPremium: Boolean
+  isPremiumPlus: Boolean
+  preferences: UserPreferences
+  profile: UserProfile
+}
+
+type UserPaginated {
+  hasMore: Boolean!
+  items: [User!]!
+  total: Int!
+}
+
+type UserPreferences {
+  createdAt: DateTime!
+  darkModeEnabled: Boolean!
+  engagementEmailEnabled: Boolean!
+  packetEmailEnabled: Boolean!
+  updatedAt: DateTime!
+  userId: ID!
+}
+
+type UserProfile {
+  avatarUrl: String
+  createdAt: DateTime
+  fullName: String
+  updatedAt: DateTime
+  userId: ID
+}
+
+input UserProfileInput {
+  """URL to user avatar/profile image"""
+  avatarUrl: String
+  fullName: String
+}
+
+input VerifyEmailDto {
+  token: String!
+}
+
+type VerifyEmailResponse {
+  message: String
+  success: Boolean!
+  user: User!
 }

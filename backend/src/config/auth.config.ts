@@ -21,12 +21,6 @@ export default registerAs('auth', () => ({
     callbackUrl: process.env.GOOGLE_CALLBACK_URL,
   },
   
-  // Session configuration
-  session: {
-    secret: process.env.SESSION_SECRET,
-    expiresIn: parseInt(process.env.SESSION_EXPIRES_IN as string, 10) || 86400, // 24 hours in seconds
-  },
-  
   // Rate limiting for auth endpoints
   rateLimit: {
     loginAttempts: parseInt(process.env.LOGIN_RATE_LIMIT as string, 10) || 5,

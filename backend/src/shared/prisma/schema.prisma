@@ -18,22 +18,40 @@ datasource db {
 }
 
 model User {
-  id         String   @id @default(uuid()) @map("id")
-  name       String   @map("name")
+  id           Int      @id @default(autoincrement())
   email      String   @unique @map("email")
-  password   String   @map("password")
+  passwordHash String?  @map("password_hash")
   role       UserRole @default(VOTE_COUNTER) @map("role")
   election   Election? @relation(fields: [electionId], references: [id])
   electionId String?  @map("election_id")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
+  googleId String? @unique @map("google_id")
+
+  profile         UserProfile?
+
   @@map("users")
+  @@schema("auth_schema")
+}
+
+model UserProfile {
+  userId    Int      @id @map("user_id")
+  fullName  String   @map("full_name")
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relation
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
   @@schema("auth_schema")
 }
 
 enum UserRole {
   ADMIN
+  ELECTION_CONTROLLER
   VOTE_COUNTER
 
   @@map("user_roles")

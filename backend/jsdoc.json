@@ -1,0 +1,31 @@
+{
+    "plugins": [
+        "node_modules/jsdoc-plugin-typescript",
+        "plugins/markdown",
+        "./jsdoc-typescript.js"
+    ],
+    "source": {
+      "include": ["src"],
+      "includePattern": "\\.ts$",
+      "excludePattern": "(node_modules|dist)"
+    },
+    "opts": {
+      "destination": "./docs",
+      "recurse": true,
+      "readme": "README.md",
+      "template": "node_modules/better-docs"
+    },
+    "typescript": {
+      "moduleRoot": "src/"
+    },
+    "templates": {
+      "cleverLinks": true,
+      "monospaceLinks": false,
+      "default": {
+        "outputSourceFiles": true
+      },
+      "better-docs": {
+        "name": "Thelicham Webzine API Documentation"
+      }
+    }
+  }

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Article Published: {{contentTitle}}</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .logo {
+      max-width: 150px;
+      margin-bottom: 15px;
+    }
+    h1 {
+      color: #1a365d;
+      margin-bottom: 20px;
+    }
+    h2 {
+      color: #1a365d;
+      margin-top: 30px;
+      margin-bottom: 15px;
+    }
+    .article-card {
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .article-card h3 {
+      color: #1a365d;
+      margin-top: 0;
+    }
+    p {
+      margin-bottom: 15px;
+    }
+    .cta-button {
+      display: inline-block;
+      background-color: #1a365d;
+      color: white !important;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 0.8em;
+      color: #666;
+      border-top: 1px solid #eee;
+      padding-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="{{url}}/images/logo.png" alt="Thelicham Webzine Logo" class="logo">
+    <h1>New Article Published</h1>
+  </div>
+
+  <p>Dear {{name}},</p>
+
+  <p>We're excited to share a new article that has just been published on Thelicham Webzine. We thought you might be interested in reading it.</p>
+
+  <div class="article-card">
+    <h3>{{contentTitle}}</h3>
+    <p>A new article has been published on Thelicham Webzine. Click the button below to read it now.</p>
+    <div style="text-align: center;">
+      <a href="{{contentUrl}}" class="cta-button">Read Article</a>
+    </div>
+  </div>
+
+  <h2>Why You Might Like This Article</h2>
+  <p>This article is part of our latest collection of thought-provoking content that aligns with your reading interests. We hope you enjoy it!</p>
+
+  <p>If you have any feedback on the article or suggestions for future topics, please let us know by replying to this email.</p>
+
+  <p>Happy reading!</p>
+
+  <p>Warm regards,<br>
+  The Thelicham Webzine Team</p>
+
+  <div class="footer">
+    <p>© {{currentYear}} Thelicham Webzine. All rights reserved.</p>
+    <p>
+      <a href="{{url}}/privacy-policy">Privacy Policy</a> | 
+      <a href="{{url}}/terms-of-service">Terms of Service</a> | 
+      <a href="{{url}}/contact">Contact Us</a>
+    </p>
+    <p>
+      <small>You're receiving this email because you're subscribed to content notifications from Thelicham Webzine. 
+      <a href="{{url}}/account/preferences">Manage your email preferences</a>.</small>
+    </p>
+  </div>
+</body>
+</html>

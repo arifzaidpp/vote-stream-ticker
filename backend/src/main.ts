@@ -3,8 +3,8 @@ import { AppModule } from './app.module';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
-import cookieParser from 'cookie-parser';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 import { PrismaService } from './shared/prisma/prisma.service';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as bodyParser from 'body-parser';
@@ -14,7 +14,7 @@ import * as bodyParser from 'body-parser';
  *  @async @function bootstrap
  *  @returns {Promise<void>}
  */
-async function bootstrap(): Promise<void> {
+async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
   });
@@ -24,8 +24,21 @@ async function bootstrap(): Promise<void> {
   // Ensure proper shutdown with Prisma
   prismaService.enableShutdownHooks(app);
 
+  
+  // Create raw body parsing middleware for webhook signature verification
+  const rawBodyMiddleware = bodyParser.json({
+    verify: (req: any, res, buf) => {
+      if (req.url.includes('/subscription/webhook')) {
+        req.rawBody = buf;
+      }
+    }
+  });
+
+  // Apply raw body middleware before built-in body parsers
+  app.use(rawBodyMiddleware);
+
   // Parse cookies
-  // app.use(cookieParser());
+  app.use(cookieParser());
 
   // Security with Helmet (if enabled)
   if (configService.get('app.helmet')) {
@@ -39,7 +52,7 @@ async function bootstrap(): Promise<void> {
   }
 
   // Compression
-  // app.use(compression());
+  app.use(compression());
 
   // Global validation pipe
   app.useGlobalPipes(
@@ -83,11 +96,12 @@ async function bootstrap(): Promise<void> {
 
   // Setup Swagger documentation for REST endpoints
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('College Election System API')
-    .setDescription('API for managing college elections and results')
+    .setTitle('Thelicham Webzine API')
+    .setDescription('The Thelicham Webzine API documentation')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
+
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api/docs', app, document);
 

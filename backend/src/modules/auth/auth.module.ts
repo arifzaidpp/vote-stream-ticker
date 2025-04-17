@@ -1,20 +1,45 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-import { JwtStrategy } from './strategies/jwt.strategy';
+import { ConfigModule } from '@nestjs/config';
+import { PrismaClient } from '@prisma/client';
+
+// Services
+import { UserService } from './services/user.service';
+
+// Strategies
+import { GoogleStrategy } from './strategies/google.strategy';
+import { CacheModule } from 'src/shared/cache/cache.module';
+import { UserAuthService } from './services/user-auth.service';
+import { MailModule } from 'src/shared/mail/mail.module';
+
+// Resolvers
+import { UserAuthResolver } from './resolvers/user-auth.resolver';
+import { UserResolver } from './resolvers/user.resolver';
 
 @Module({
   imports: [
-    PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'super-secret',
-      signOptions: { expiresIn: '24h' },
-    }),
+    PassportModule.register({ defaultStrategy: 'session' }),
+    ConfigModule,
+    CacheModule,
+    MailModule,
   ],
-  controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService],
+  providers: [
+    PrismaClient,
+    
+    // Services
+    UserAuthService,
+    UserService,
+    
+    // Strategies
+    GoogleStrategy,
+    
+    // Resolvers
+    UserAuthResolver,
+    UserResolver,
+  ],
+  exports: [
+    PassportModule,
+    UserAuthService,
+  ],
 })
 export class AuthModule {}

@@ -16,6 +16,16 @@ export default registerAs('throttler', () => {
       ttl,
       limit: Math.max(5, Math.floor(maxRequests * 0.05)), // 5% of max requests for auth endpoints (min 5)
     },
+    content: {
+      submission: {
+        ttl,
+        limit: Math.max(3, Math.floor(maxRequests * 0.03)), // 3% of max requests for submissions (min 3)
+      },
+      comment: {
+        ttl,
+        limit: Math.max(10, Math.floor(maxRequests * 0.1)), // 10% of max requests for comments (min 10)
+      },
+    },
     // IP whitelist (for admins or internal services)
     whitelist: process.env.THROTTLE_WHITELIST?.split(',') || [],
   };
