@@ -1,0 +1,138 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres", "postgresqlExtensions", "multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  extensions = [pgcrypto, postgis, pg_trgm]
+  schemas    = ["auth_schema", "election_schema"]
+}
+
+model User {
+  id         String   @id @default(uuid()) @map("id")
+  name       String   @map("name")
+  email      String   @unique @map("email")
+  password   String   @map("password")
+  role       UserRole @default(VOTE_COUNTER) @map("role")
+  election   Election? @relation(fields: [electionId], references: [id])
+  electionId String?  @map("election_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+  @@schema("auth_schema")
+}
+
+enum UserRole {
+  ADMIN
+  VOTE_COUNTER
+
+  @@map("user_roles")
+  @@schema("auth_schema")
+}
+
+model Election {
+  id          String     @id @default(uuid()) @map("id")
+  name        String     @map("name")
+  logo        String?    @map("logo")
+  status      ElectionStatus @default(DRAFT) @map("status")
+  totalVoters Int        @map("total_voters")
+  booths      Booth[]
+  parties     Party[]
+  users       User[]
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@map("elections")
+  @@schema("election_schema")
+}
+
+enum ElectionStatus {
+  DRAFT
+  ONGOING
+  COMPLETED
+
+  @@map("election_status")
+  @@schema("election_schema")
+}
+
+model Booth {
+  id            String    @id @default(uuid()) @map("id")
+  boothNumber   Int       @map("booth_number")
+  voterCount    Int       @map("voter_count")
+  election      Election  @relation(fields: [electionId], references: [id])
+  electionId    String    @map("election_id")
+  countingRounds CountingRound[]
+
+  @@map("booths")
+  @@schema("election_schema")
+}
+
+model Party {
+  id         String     @id @default(uuid()) @map("id")
+  name       String     @map("name")
+  logo       String?    @map("logo")
+  color      String     @map("color")
+  election   Election   @relation(fields: [electionId], references: [id])
+  electionId String     @map("election_id")
+  candidates Candidate[]
+
+  @@map("parties")
+  @@schema("election_schema")
+}
+
+model Candidate {
+  id         String     @id @default(uuid()) @map("id")
+  name       String     @map("name")
+  photo      String?    @map("photo")
+  position   CandidatePosition @map("position")
+  party      Party      @relation(fields: [partyId], references: [id])
+  partyId    String     @map("party_id")
+  results    Result[]
+
+  @@map("candidates")
+  @@schema("election_schema")
+}
+
+enum CandidatePosition {
+  PRESIDENT
+  SECRETARY
+  TREASURER
+
+  @@map("candidate_positions")
+  @@schema("election_schema")
+}
+
+model CountingRound {
+  id          String   @id @default(uuid()) @map("id")
+  roundNumber Int      @map("round_number")
+  booth       Booth    @relation(fields: [boothId], references: [id])
+  boothId     String   @map("booth_id")
+  isPublished Boolean  @default(false) @map("is_published")
+  results     Result[]
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("counting_rounds")
+  @@schema("election_schema")
+}
+
+model Result {
+  id            String        @id @default(uuid()) @map("id")
+  countingRound CountingRound @relation(fields: [roundId], references: [id])
+  roundId       String        @map("round_id")
+  candidate     Candidate     @relation(fields: [candidateId], references: [id])
+  candidateId   String        @map("candidate_id")
+  voteCount     Int           @map("vote_count")
+
+  @@map("results")
+  @@schema("election_schema")
+}
