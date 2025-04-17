@@ -2,7 +2,7 @@
     "entryPoints": ["src/main.ts"],
     "out": "docs",
     "readme": "README.md",
-    "name": "Thelicham Webzine API Documentation",
+    "name": "Election Result API Documentation",
     "excludePrivate": false,
     "excludeProtected": false,
     "excludeExternals": true,

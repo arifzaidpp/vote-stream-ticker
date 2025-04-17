@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -23,19 +23,6 @@ async function bootstrap() {
 
   // Ensure proper shutdown with Prisma
   prismaService.enableShutdownHooks(app);
-
-  
-  // Create raw body parsing middleware for webhook signature verification
-  const rawBodyMiddleware = bodyParser.json({
-    verify: (req: any, res, buf) => {
-      if (req.url.includes('/subscription/webhook')) {
-        req.rawBody = buf;
-      }
-    }
-  });
-
-  // Apply raw body middleware before built-in body parsers
-  app.use(rawBodyMiddleware);
 
   // Parse cookies
   app.use(cookieParser());
@@ -96,8 +83,8 @@ async function bootstrap() {
 
   // Setup Swagger documentation for REST endpoints
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('Thelicham Webzine API')
-    .setDescription('The Thelicham Webzine API documentation')
+    .setTitle('Election Result API')
+    .setDescription('The Election Result API documentation')
     .setVersion('1.0')
     .addBearerAuth()
     .build();

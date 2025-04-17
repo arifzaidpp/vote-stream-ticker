@@ -2,7 +2,6 @@ import { Module, Global } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CacheModule as NestCacheModule } from '@nestjs/cache-manager';
 import { CacheService } from './cache.service';
-import { CacheInvalidationUtils } from './invalidate-content-cache.utils';
 
 @Global()
 @Module({
@@ -19,7 +18,7 @@ import { CacheInvalidationUtils } from './invalidate-content-cache.utils';
       },
     }),
   ],
-  providers: [CacheService, CacheInvalidationUtils],
-  exports: [CacheService, CacheInvalidationUtils],
+  providers: [CacheService],
+  exports: [CacheService],
 })
 export class CacheModule {}

@@ -62,7 +62,7 @@ export class MailService {
     try {
       await this.mailerService.sendMail({
         to: user.email as string,
-        subject: 'Welcome to Thelicham Webzine!',
+        subject: 'Welcome to Election Result!',
         template: 'welcome',
         context: {
           name: user.email,
@@ -148,117 +148,6 @@ export class MailService {
       return false;
     }
   }
-
-  /**
-   * Send subscription confirmation email
-   * @param user User to send email to
-   * @param planName Name of the subscription plan
-   * @param endDate Subscription end date
-   */
-  async sendSubscriptionConfirmation(
-    user: User,
-    planName: string,
-    endDate: Date,
-  ): Promise<boolean> {
-    if (await this.checkRateLimit(user.id as number)) {
-      return false;
-    }
-
-    try {
-      await this.mailerService.sendMail({
-        to: user.email as string,
-        subject: 'Subscription Confirmation',
-        template: 'subscription-confirmation',
-        context: {
-          name: user.email,
-          planName,
-          endDate: endDate.toLocaleDateString(),
-          accountUrl: `${this.frontendUrl}/account/subscriptions`,
-          url: this.frontendUrl,
-          currentYear: new Date().getFullYear(),
-        },
-      });
-      return true;
-    } catch (error) {
-      this.logger.error(`Failed to send subscription confirmation to ${user.email}`, error.stack);
-      return false;
-    }
-  }
-
-  /**
-   * Send subscription renewal reminder
-   * @param user User to send email to
-   * @param planName Name of the subscription plan
-   * @param endDate Subscription end date
-   * @param daysRemaining Days remaining before expiration
-   */
-  async sendRenewalReminder(
-    user: User,
-    planName: string,
-    endDate: Date,
-    daysRemaining: number,
-  ): Promise<boolean> {
-    if (await this.checkRateLimit(user.id as number)) {
-      return false;
-    }
-
-    try {
-      await this.mailerService.sendMail({
-        to: user.email as string,
-        subject: `Your subscription expires in ${daysRemaining} days`,
-        template: 'renewal-reminder',
-        context: {
-          name: user.email,
-          planName,
-          endDate: endDate.toLocaleDateString(),
-          daysRemaining,
-          renewUrl: `${this.frontendUrl}/account/subscriptions`,
-          url: this.frontendUrl,
-          currentYear: new Date().getFullYear(),
-        },
-      });
-      return true;
-    } catch (error) {
-      this.logger.error(`Failed to send renewal reminder to ${user.email}`, error.stack);
-      return false;
-    }
-  }
-
-  /**
-   * Send notification about new content published
-   * @param user User to send email to
-   * @param contentTitle Title of the new content
-   * @param contentSlug Slug of the new content
-   */
-  async sendNewContentNotification(
-    user: User,
-    contentTitle: string,
-    contentSlug: string,
-  ): Promise<boolean> {
-    if (await this.checkRateLimit(user.id as number)) {
-      return false;
-    }
-
-    try {
-      await this.mailerService.sendMail({
-        to: user.email as string,
-        subject: `New article published: ${contentTitle}`,
-        template: 'new-content',
-        context: {
-          name: user.email,
-          contentTitle,
-          contentUrl: `${this.frontendUrl}/article/${contentSlug}`,
-          url: this.frontendUrl,
-          currentYear: new Date().getFullYear(),
-        },
-      });
-      return true;
-    } catch (error) {
-      this.logger.error(`Failed to send new content notification to ${user.email}`, error.stack);
-      return false;
-    }
-  }
-
 
   /**
    * Send a generic email
