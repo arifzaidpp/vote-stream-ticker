@@ -4,7 +4,6 @@ import { User } from '../models/user.model';
 import { UserService } from '../services/user.service';
 import { GqlAuthGuard } from 'src/common/guards/gql-auth.guard';
 import { UserPaginated } from '../dto/user/user.dto';
-import { AdminAuthGuard } from 'src/common/guards/admin-auth.guard';
 import { RequirePermissions } from 'src/common/decorators/permission.decorator';
 import { PERMISSIONS } from 'src/common/constants/permission.constants';
 import { PaginationInput } from 'src/common/dto/pagination.dto';
