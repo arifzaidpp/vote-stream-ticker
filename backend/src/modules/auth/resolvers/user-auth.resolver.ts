@@ -52,7 +52,8 @@ export class UserAuthResolver {
     @Context() context: { req: Request; res: Response },
   ): Promise<SuccessResponse> {
     // Get sessionId from the cookies
-    return this.userAuthService.logout(context.res);
+    const sessionId = context.req.cookies.sessionId;
+    return this.userAuthService.logout(sessionId, context.res);
   }
 
   @Mutation(() => VerifyEmailResponse)

@@ -1,6 +1,5 @@
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { UserProfile } from './user-profile.model';
-import { UserPreferences } from './user-preferences.model';
 
 /**
  * Enum for user verification status
@@ -10,6 +9,15 @@ export enum VerificationStatus {
   UNVERIFIED = 'UNVERIFIED',
   PENDING = 'PENDING',
 }
+
+// /**
+//  * Enum for user roles
+//  */
+// export enum UserRole {
+//   ADMIN = 'ADMIN',
+//   ELECTION_CONTROLLER = 'ELECTION_CONTROLLER',
+//   VOTE_COUNTER = 'VOTE_COUNTER',
+// }
 
 // Register enum for GraphQL schema
 registerEnumType(VerificationStatus, {
@@ -34,23 +42,11 @@ export class User {
   @Field(() => String, { nullable: true })
   email?: string | null;
 
-  /**
-   * Whether the user has premium subscription
-   */
-  @Field(() => Boolean, { nullable: true, defaultValue: false })
-  isPremium?: boolean | null;
-
-  /**
-   * Whether the user has premium plus subscription
-   */
-  @Field(() => Boolean, { nullable: true, defaultValue: false })
-  isPremiumPlus?: boolean | null;
-
-  /**
-   * Whether the user is an author
-   */
-  @Field(() => Boolean, { nullable: true, defaultValue: false })
-  isAuthor?: boolean | null;
+  // /**
+  //    * User role
+  //    */
+  // @Field(() => UserRole, { defaultValue: UserRole.VOTE_COUNTER })
+  // role: UserRole;
 
   /**
    * Optional Google ID for OAuth users
@@ -69,10 +65,4 @@ export class User {
    */
   @Field(() => UserProfile, { nullable: true })
   profile?: UserProfile | null;
-
-  /**
-   * User preferences
-   */
-  @Field(() => UserPreferences, { nullable: true })
-  preferences?: UserPreferences | null;
 }

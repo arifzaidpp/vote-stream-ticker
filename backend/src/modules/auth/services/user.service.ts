@@ -11,7 +11,6 @@ import { withErrorHandling } from 'src/common/utils/application-error.utils';
 import { User } from '../models/user.model';
 import { UpdateProfileInput } from '../dto/user/user-profile.input';
 import { ActionType, Entity } from 'src/common/constants/types.constants';
-import { UpdatePreferencesInput } from '../dto/user/user-preferences.input';
 import { SuccessResponse } from 'src/common/models/pagination.model';
 
 /**
@@ -244,7 +243,7 @@ export class UserService {
       },
     );
   }
-  
+
   /**
    * Delete a single user by ID and log the admin action
    *

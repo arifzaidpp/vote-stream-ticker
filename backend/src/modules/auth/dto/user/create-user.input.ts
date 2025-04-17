@@ -1,7 +1,6 @@
 import { IsEmail, IsString, IsOptional, MinLength, MaxLength, Matches, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { UserProfileInput } from './user-profile.input';
-import { UserPreferencesDto } from './user-preferences.input';
 import { Field, InputType } from '@nestjs/graphql';
 
 /**
@@ -9,10 +8,6 @@ import { Field, InputType } from '@nestjs/graphql';
  */
 @InputType()
 export class CreateUserDto {
-  /**
-   * User name
-   * @example "John"
-   */
   /**
    * User email address
    * @example "user@example.com"

@@ -10,7 +10,6 @@ import { PERMISSIONS } from 'src/common/constants/permission.constants';
 import { PaginationInput } from 'src/common/dto/pagination.dto';
 import { UpdateProfileInput } from '../dto/user/user-profile.input';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import { UpdatePreferencesInput } from '../dto/user/user-preferences.input';
 
 @Resolver(() => User)
 export class UserResolver {

@@ -8,18 +8,14 @@ export class UserPaginated extends Paginated(User) {}
 
 @InputType()
 export class UserFilter {
-    @Field(() => Boolean, {nullable: true}) 
-    @IsBoolean()
+    @Field(() => String, { nullable: true })
+    email?: string;
+    
+    @Field(() => String, { nullable: true })
+    fullName?: string;
+    
+    @Field(() => Boolean, { nullable: true })
     @IsOptional()
-    isPremium?: boolean;
-
-    @Field(() => Boolean, {nullable: true})
     @IsBoolean()
-    @IsOptional()
-    isPremiumPlus?: boolean;
-
-    @Field(() => Boolean, {nullable: true})
-    @IsBoolean()
-    @IsOptional()
-    isAuthor ?: boolean;
+    isVerified?: boolean;
 }

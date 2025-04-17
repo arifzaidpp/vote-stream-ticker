@@ -30,6 +30,11 @@ import {
   generatePasswordResetToken,
   validateJwtToken,
 } from 'src/common/utils/token.util';
+import {
+  createUserSession,
+  getUserSessionsCount,
+  invalidateUserSession,
+} from 'src/common/utils/session.util';
 import { PrismaClient, User } from '@prisma/client';
 import { transformDates } from 'src/common/utils/date.utils';
 
@@ -207,11 +212,44 @@ export class UserAuthService {
           throw new UnauthorizedException('Invalid email or password');
         }
 
+        // Begin transaction for session handling
+        const result = await this.prisma.$transaction(async (tx) => {
+          // Check session limits (max 2 active sessions)
+          const activeSessions = await getUserSessionsCount(
+            tx as PrismaClient,
+            user.id,
+          );
+          if (activeSessions >= 2) {
+            throw new UnauthorizedException(
+              'Maximum number of active sessions reached. Please log out from another device.',
+            );
+          }
+
+          // Create a new session
+          const sessionId = await createUserSession(
+            tx as PrismaClient,
+            user.id,
+            req.ip || 'unknown',
+            (req.headers['user-agent'] as string) || 'unknown',
+          );
+
+          return { user, sessionId };
+        });
+
+        // Set session cookie if response object is provided
+        if (res) {
+          res.cookie('sessionId', result.sessionId, {
+            httpOnly: true,
+            secure: this.configService.get('NODE_ENV') === 'production',
+            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+          });
+        }
+
         // Cache the user data
         await this.cacheService.set(cacheKeys.user(user.id), user, this.ttl);
 
         // Remove sensitive data
-        const { passwordHash, ...userWithoutPassword } = user;
+        const { passwordHash, ...userWithoutPassword } = result.user;
         return { user: userWithoutPassword as UserModel };
       },
       {
@@ -229,9 +267,17 @@ export class UserAuthService {
    * @param res - Optional Express response object for clearing cookies
    * @returns Promise with success response
    */
-  async logout(res?: Response): Promise<SuccessResponse> {
+  async logout(sessionId: string, res?: Response): Promise<SuccessResponse> {
     return withErrorHandling(
       async () => {
+        await this.prisma.$transaction(async (tx) => {
+          await invalidateUserSession(tx as PrismaClient, sessionId);
+        });
+
+        // Clear session cookie if response object is provided
+        if (res) {
+          res.clearCookie('sessionId');
+        }
 
         return {
           success: true,
@@ -241,6 +287,24 @@ export class UserAuthService {
       {
         entityName: 'user',
         operation: 'logout',
+      },
+    );
+  }
+
+  /**
+   * Get active user sessions count
+   *
+   * @param userId - ID of the user to check sessions for
+   * @returns Promise with session count
+   */
+  async getUserSessionsCount(userId: number): Promise<number> {
+    return withErrorHandling(
+      async () => {
+        return await getUserSessionsCount(this.prisma, userId);
+      },
+      {
+        entityName: 'user',
+        operation: 'getSessionsCount',
       },
     );
   }
@@ -733,6 +797,43 @@ export class UserAuthService {
       {
         entityName: 'user',
         operation: 'me',
+      },
+    );
+  }
+
+  /**
+   * Verify if a session is valid
+   *
+   * @param sessionId - ID of the session to verify
+   * @returns Promise with user ID if session is valid
+   * @throws UnauthorizedException if session is invalid
+   */
+  async verifySession(sessionId: string): Promise<number> {
+    return withErrorHandling(
+      async () => {
+        // Check if session exists and is not expired
+        const session = await this.prisma.session.findUnique({
+          where: { id: sessionId },
+        });
+
+        if (!session || session.expires < new Date()) {
+          throw new UnauthorizedException('Invalid or expired session');
+        }
+
+        // Check if user exists
+        const user = await this.prisma.user.findUnique({
+          where: { id: session.userId },
+        });
+
+        if (!user) {
+          throw new UnauthorizedException('User not found');
+        }
+
+        return session.userId;
+      },
+      {
+        entityName: 'session',
+        operation: 'verify',
       },
     );
   }

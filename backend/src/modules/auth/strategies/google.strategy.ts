@@ -76,7 +76,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
                 fullName: displayName || 'Google User',
                 avatarUrl,
               },
-            }
+            },
           },
           include: {
             profile: true,

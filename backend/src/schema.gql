@@ -81,10 +81,6 @@ type User {
   email: String
   googleId: String
   id: ID
-  isAuthor: Boolean
-  isPremium: Boolean
-  isPremiumPlus: Boolean
-  preferences: UserPreferences
   profile: UserProfile
 }
 
@@ -92,15 +88,6 @@ type UserPaginated {
   hasMore: Boolean!
   items: [User!]!
   total: Int!
-}
-
-type UserPreferences {
-  createdAt: DateTime!
-  darkModeEnabled: Boolean!
-  engagementEmailEnabled: Boolean!
-  packetEmailEnabled: Boolean!
-  updatedAt: DateTime!
-  userId: ID!
 }
 
 type UserProfile {

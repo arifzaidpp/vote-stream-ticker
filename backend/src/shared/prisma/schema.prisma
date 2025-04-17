@@ -30,6 +30,7 @@ model User {
   googleId String? @unique @map("google_id")
 
   profile         UserProfile?
+  sessions        Session[]
 
   @@map("users")
   @@schema("auth_schema")
@@ -57,6 +58,28 @@ enum UserRole {
   @@map("user_roles")
   @@schema("auth_schema")
 }
+
+model Session {
+  id           String    @id @default(uuid())
+  userId       Int       @map("user_id")
+  expires      DateTime
+  ipAddress    String?   @map("ip_address") @db.VarChar(45)
+  userAgent    String?   @map("user_agent")
+  deviceName   String?   @map("device_name")
+  loginMethod  String    @default("password") @map("login_method")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  lastActiveAt DateTime? @map("last_active_at") @db.Timestamptz
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expires])
+  @@index([ipAddress])
+  @@map("sessions")
+  @@schema("auth_schema")
+}
+
 
 model Election {
   id          String     @id @default(uuid()) @map("id")

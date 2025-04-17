@@ -8,6 +8,7 @@ import { UserService } from './services/user.service';
 
 // Strategies
 import { GoogleStrategy } from './strategies/google.strategy';
+import { SessionStrategy } from './strategies/session.strategy';
 import { CacheModule } from 'src/shared/cache/cache.module';
 import { UserAuthService } from './services/user-auth.service';
 import { MailModule } from 'src/shared/mail/mail.module';
@@ -15,6 +16,7 @@ import { MailModule } from 'src/shared/mail/mail.module';
 // Resolvers
 import { UserAuthResolver } from './resolvers/user-auth.resolver';
 import { UserResolver } from './resolvers/user.resolver';
+
 
 @Module({
   imports: [
@@ -32,6 +34,7 @@ import { UserResolver } from './resolvers/user.resolver';
     
     // Strategies
     GoogleStrategy,
+    SessionStrategy,
     
     // Resolvers
     UserAuthResolver,
