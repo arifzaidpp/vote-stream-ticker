@@ -7,6 +7,18 @@ export default defineConfig({
   server: {
     host: "::",
     port: 8080,
+    proxy:{
+      '/api':{
+        target:"http://localhost:3000"
+      }
+    }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        assetFileNames: 'assets/[name]-[hash][extname]',
+      },
+    },
   },
   plugins: [react()],
   resolve: {

@@ -8,6 +8,8 @@ import Elections from "./pages/admin/Elections";
 import ElectionSetup from "./pages/admin/ElectionSetup";
 import CountingPanel from "./pages/admin/CountingPanel";
 import NotFound from "./pages/NotFound";
+import { LoginForm } from "./components/auth/LoginForm";
+import { SignupForm } from "./components/auth/SignupForm";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +21,8 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/signup" element={<SignupForm />} />
           <Route path="/admin/elections" element={<Elections />} />
           <Route path="/admin/elections/new" element={<ElectionSetup />} />
           <Route path="/admin/elections/counting" element={<CountingPanel />} />
