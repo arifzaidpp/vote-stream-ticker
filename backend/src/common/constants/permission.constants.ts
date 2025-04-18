@@ -29,6 +29,7 @@
     DEACTIVATE_ROLE: 'role:deactivate',
     ASSIGN_ROLE: 'role:assign',
     REMOVE_ROLE: 'role:remove',
+    ADMIN_ROLE: 'role:ADMIN',
   };
 
   // Content Management Permissions

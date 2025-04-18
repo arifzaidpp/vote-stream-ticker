@@ -37,6 +37,7 @@ import {
 } from 'src/common/utils/session.util';
 import { PrismaClient, User } from '@prisma/client';
 import { transformDates } from 'src/common/utils/date.utils';
+import { JwtService } from '@nestjs/jwt';
 
 /**
  * Interface for password reset data
@@ -66,6 +67,7 @@ export class UserAuthService {
     private readonly cacheService: CacheService,
     private readonly emailService: MailService,
     private readonly configService: ConfigService,
+    private readonly jwtService: JwtService,
   ) {}
 
   /**
@@ -245,12 +247,24 @@ export class UserAuthService {
           });
         }
 
+        // Generate JWT token with role information
+      const payload = { 
+        sub: result.user.id, 
+        username: result.user.email,
+        role: result.user.role  // Make sure user has a role property
+      };
+      
+      const token = this.jwtService.sign(payload);
+
+      console.log('token', token);
+      
+
         // Cache the user data
         await this.cacheService.set(cacheKeys.user(user.id), user, this.ttl);
 
         // Remove sensitive data
         const { passwordHash, ...userWithoutPassword } = result.user;
-        return { user: userWithoutPassword as UserModel };
+        return { user: userWithoutPassword as UserModel, token };
       },
       {
         entityName: 'user',

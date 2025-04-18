@@ -4,6 +4,7 @@ import { UserFilter } from 'src/modules/auth/dto/user/user.dto';
  * Generate cache keys for various entities
  */
 export const cacheKeys = {
+  // User-related cache keys
   user: (id: number) => `user:id-${id}`,
   users: (
     search = '',
@@ -19,4 +20,9 @@ export const cacheKeys = {
   pendingVerification: (email: string) => `pending-verification:${email}`,
   passwordReset: (token: string) => `password-reset:${token}`,
   adminPasswordReset: (token: string) => `admin-password-reset:${token}`,
+  
+  // Election-related cache keys
+  election: (id: string) => `election:id-${id}`,
+  electionByAccessCode: (accessCode: string) => `election:access-code-${accessCode}`,
+  userElections: (userId: number) => `elections:user-${userId}`,
 };

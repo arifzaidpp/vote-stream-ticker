@@ -42,11 +42,11 @@ export class User {
   @Field(() => String, { nullable: true })
   email?: string | null;
 
-  // /**
-  //    * User role
-  //    */
-  // @Field(() => UserRole, { defaultValue: UserRole.VOTE_COUNTER })
-  // role: UserRole;
+  /**
+     * User role
+     */
+  @Field(() => String, { nullable: true })
+  role?: string | null;
 
   /**
    * Optional Google ID for OAuth users

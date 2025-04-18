@@ -49,6 +49,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 // Other imports
 import { ThrottlerModule, ThrottlerStorageService } from '@nestjs/throttler';
 import { CustomThrottlerGuard } from './common/guards/throttler.guard';
+import { ElectionModule } from './modules/election/election.module';
+import { CountingModule } from './modules/counting/counting.module';
 
 // Other imports
 
@@ -125,7 +127,7 @@ import { CustomThrottlerGuard } from './common/guards/throttler.guard';
           // Updated playground configuration
           playground: false,
 
-          validationRules: [depthLimit(3)], // Limits query depth to 5 levels
+          validationRules: [depthLimit(5)], // Limits query depth to 5 levels
 
           plugins: [
             ApolloServerPluginLandingPageLocalDefault(),
@@ -152,17 +154,15 @@ import { CustomThrottlerGuard } from './common/guards/throttler.guard';
           debug: configService.get('graphql.debug'),
 
           context: ({ req, res, connection }) => ({
-            // For HTTP requests
             ...(req && {
               req,
               res,
-              headers: req.headers,
             }),
-            // For WebSocket connections
             ...(connection && {
               connection,
             }),
           }),
+          
 
           cors: configService.get('app.cors'),
 
@@ -216,6 +216,8 @@ import { CustomThrottlerGuard } from './common/guards/throttler.guard';
     AuthModule,
     // Modules
     MailModule,
+    ElectionModule,
+    CountingModule
   ],
   controllers: [AppController],
   providers: [

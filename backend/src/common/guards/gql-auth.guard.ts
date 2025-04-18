@@ -11,6 +11,7 @@ export class GqlAuthGuard extends AuthGuard('session') {
   }
   
   handleRequest(err: any, user: any) {
+    console.log('Authenticated user:', user);
     if (err || !user) {
       throw new UnauthorizedException('Not authenticated');
     }

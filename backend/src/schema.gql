@@ -2,9 +2,44 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input BoothDto {
+  boothNumber: Float!
+  voterCount: Float!
+}
+
+type BoothResponse {
+  boothNumber: Float!
+  id: String!
+  totalVotesCounted: Float!
+  voterCount: Float!
+}
+
+input CandidateDto {
+  name: String!
+  photo: String
+  position: String!
+}
+
+type CandidateResponse {
+  id: String!
+  name: String!
+  photo: String
+  position: String!
+}
+
 input ChangePasswordInput {
   currentPassword: String!
   newPassword: String!
+}
+
+input CreateElectionDto {
+  accessCode: String
+  booths: [BoothDto!]!
+  logo: String!
+  name: String!
+  parties: [PartyDto!]!
+  status: String!
+  totalVoters: Float!
 }
 
 input CreateUserDto {
@@ -18,6 +53,32 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+input ElectionFilter {
+  createdAt: DateTime
+  isActive: Boolean
+  name: String
+  updatedAt: DateTime
+}
+
+type ElectionPaginated {
+  hasMore: Boolean!
+  items: [ElectionResponse!]!
+  total: Float!
+}
+
+type ElectionResponse {
+  booths: [BoothResponse!]!
+  createdAt: DateTime!
+  id: String!
+  logo: String
+  name: String!
+  parties: [PartyResponse!]!
+  status: String!
+  totalVoters: Float!
+  updatedAt: DateTime!
+  votingCompletion: Float!
+}
+
 input ForgotPasswordDto {
   email: String!
 }
@@ -28,11 +89,15 @@ input LoginDto {
 }
 
 type LoginResponse {
+  token: String!
   user: User!
 }
 
 type Mutation {
   changePassword(input: ChangePasswordInput!): SuccessResponse!
+  createElection(input: CreateElectionDto!): ElectionResponse!
+  deleteElection(id: String!): ElectionResponse!
+  deleteElections(ids: [String!]!): SuccessResponse!
   login(input: LoginDto!): LoginResponse!
   logout: SuccessResponse!
   register(input: CreateUserDto!): SuccessResponse!
@@ -40,6 +105,7 @@ type Mutation {
   resendVerificationEmail(email: String!): SuccessResponse!
   resetPassword(input: ResetPasswordDto!): SuccessResponse!
   setPasswordForOAuthUser(input: SetPasswordInput!): SuccessResponse!
+  updateElection(input: UpdateElectionDto!): ElectionResponse!
   updateUserProfile(input: UpdateProfileInput!): User!
   verifyEmail(input: VerifyEmailDto!): VerifyEmailResponse!
 }
@@ -49,7 +115,32 @@ input PaginationInput {
   take: Int! = 10
 }
 
+input PaginationWithSearchInput {
+  search: String
+  skip: Int! = 0
+  take: Int! = 10
+}
+
+input PartyDto {
+  candidates: [CandidateDto!]!
+  color: String!
+  logo: String!
+  name: String!
+}
+
+type PartyResponse {
+  candidates: [CandidateResponse!]!
+  color: String!
+  id: String!
+  logo: String
+  name: String!
+}
+
 type Query {
+  electionByAccessCode(accessCode: String!): ElectionResponse!
+  electionById(id: String!): ElectionResponse!
+  electionCount(filter: ElectionFilter): Int!
+  elections(filters: ElectionFilter, pagination: PaginationWithSearchInput, sort: SortInput): ElectionPaginated!
   getHello: String!
   me: User!
   userById(id: Int!): User!
@@ -65,9 +156,52 @@ input SetPasswordInput {
   password: String!
 }
 
+"""Sort direction"""
+enum SortDirection {
+  ASC
+  DESC
+}
+
+input SortInput {
+  direction: SortDirection! = DESC
+  field: String
+}
+
 type SuccessResponse {
   message: String
   success: Boolean!
+}
+
+input UpdateBoothDto {
+  boothNumber: Float
+  id: String!
+  voterCount: Float
+}
+
+input UpdateCandidateDto {
+  id: String!
+  name: String
+  photo: String
+  position: String
+}
+
+input UpdateElectionDto {
+  accessCode: String
+  booths: [UpdateBoothDto!]
+  id: String!
+  logo: String
+  name: String
+  parties: [UpdatePartyDto!]
+  status: String
+  totalVoters: Float
+}
+
+input UpdatePartyDto {
+  candidates: [UpdateCandidateDto!]
+  color: String
+  id: String!
+  logo: String
+  name: String
 }
 
 input UpdateProfileInput {
@@ -82,6 +216,7 @@ type User {
   googleId: String
   id: ID
   profile: UserProfile
+  role: String
 }
 
 type UserPaginated {

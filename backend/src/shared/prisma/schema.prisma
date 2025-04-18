@@ -21,8 +21,8 @@ model User {
   id           Int      @id @default(autoincrement())
   email      String   @unique @map("email")
   passwordHash String?  @map("password_hash")
-  role       UserRole @default(VOTE_COUNTER) @map("role")
-  election   Election? @relation(fields: [electionId], references: [id])
+  role       UserRole? @default(VOTE_COUNTER) @map("role")
+  elections  Election[] @relation("ElectionUser")
   electionId String?  @map("election_id")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
@@ -87,9 +87,12 @@ model Election {
   logo        String?    @map("logo")
   status      ElectionStatus @default(DRAFT) @map("status")
   totalVoters Int        @map("total_voters")
+  accessCode   String?     @map("access_code") @unique
+  votingCompletion Float? @default(0) @map("voting_completion")
+  userId    Int?       @map("user_id")
+  user      User?      @relation("ElectionUser", fields: [userId], references: [id], onDelete: SetNull)
   booths      Booth[]
   parties     Party[]
-  users       User[]
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt @map("updated_at")
 
@@ -112,6 +115,7 @@ model Booth {
   voterCount    Int       @map("voter_count")
   election      Election  @relation(fields: [electionId], references: [id])
   electionId    String    @map("election_id")
+  totalVotesCounted Int @default(0) @map("total_votes_counted")
   countingRounds CountingRound[]
 
   @@map("booths")
@@ -161,6 +165,7 @@ model CountingRound {
   isPublished Boolean  @default(false) @map("is_published")
   results     Result[]
   createdAt   DateTime @default(now()) @map("created_at")
+  countedAt DateTime @default(now()) @map("counted_at")
 
   @@map("counting_rounds")
   @@schema("election_schema")
@@ -172,6 +177,7 @@ model Result {
   roundId       String        @map("round_id")
   candidate     Candidate     @relation(fields: [candidateId], references: [id])
   candidateId   String        @map("candidate_id")
+  countedAt DateTime @default(now()) @map("counted_at")
   voteCount     Int           @map("vote_count")
 
   @@map("results")

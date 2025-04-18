@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -44,6 +44,7 @@ async function bootstrap() {
   // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
+      exceptionFactory: (errors) => new BadRequestException(errors),
       transform: true, // Transform payloads to DTO instances
       whitelist: true, // Strip properties not in DTO
       forbidNonWhitelisted: true, // Throw errors if non-whitelisted values are provided
