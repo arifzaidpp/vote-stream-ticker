@@ -1,3 +1,3 @@
-import server from '../src/main'; // Adjust path if needed
+import server from "src/main";
 
 export default server;
