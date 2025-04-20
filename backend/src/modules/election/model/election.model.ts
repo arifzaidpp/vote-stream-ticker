@@ -129,6 +129,9 @@ export class ElectionResponse {
   totalVoters: number;
 
   @Field()
+  accessCode: string;
+
+  @Field()
   votingCompletion: number;
 
   @Field(() => [BoothResponse])

@@ -8,6 +8,7 @@ import { GoogleAuthButton } from './GoogleAuthButton';
 
 import { Button } from '../ui/ButtonAdded';
 import { Input } from '../ui/InputAdded';
+import { useMutation, gql } from "@apollo/client";
 
 
 export function LoginForm() {
@@ -27,12 +28,63 @@ export function LoginForm() {
     }));
   };
 
+  // GraphQL mutation for user login
+  const LOGIN_USER = gql`
+    mutation Login($input: LoginDto!) {
+      login(input: $input) {
+        user {
+          email
+          role
+          profile {
+            fullName
+            avatarUrl
+            createdAt
+            updatedAt
+          }
+          googleId
+          id
+          createdAt
+        }
+        token
+      }
+    }
+  `;
+  const [loginUser] = useMutation(LOGIN_USER, {
+    onCompleted: (data) => {
+      // Handle successful login
+      const { token, user } = data.login;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      toast({
+        title: 'Login successful',
+        description: `Welcome back, ${user.profile.fullName}!`,
+        variant: 'default',
+      });
+      navigate('/admin/elections');
+    },
+    onError: (error) => {
+      // Handle login error
+      toast({
+        title: 'Login failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // await login(formData.email, formData.password);
+      await loginUser({
+        variables: {
+          input: {
+            email: formData.email,
+            password: formData.password,
+          },
+        },
+      });
       
     } catch (error) {
       toast({

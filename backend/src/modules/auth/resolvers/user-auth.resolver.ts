@@ -25,6 +25,8 @@ export class UserAuthResolver {
     @Args('input') input: CreateUserDto,
     @Context() context: { req: Request },
   ): Promise<SuccessResponse> {
+    console.log('Registering user:', input);
+    
     return this.userAuthService.register(input, context.req);
   }
 
@@ -46,15 +48,36 @@ export class UserAuthResolver {
 
 // TODO : Uncomment this when the feature is ready
 
-  @Mutation(() => SuccessResponse)
-  @UseGuards(GqlAuthGuard)
-  async logout(
-    @Context() context: { req: Request; res: Response },
-  ): Promise<SuccessResponse> {
-    // Get sessionId from the cookies
-    const sessionId = context.req.cookies.sessionId;
+@Mutation(() => SuccessResponse)
+async logout(
+  @Context() context: { req: Request; res: Response },
+): Promise<SuccessResponse> {
+  try {
+    // Check if there's a session ID in cookies
+    const sessionId = context.req.cookies?.sessionId;
+    console.log('Session ID:', sessionId);
+    
+    if (!sessionId) {
+      // If no session exists, just return success
+      // This ensures users can "log out" even if they're already logged out
+      return {
+        success: true,
+        message: 'Already logged out'
+      };
+    }
+    
+    // If session exists, try to logout properly
     return this.userAuthService.logout(sessionId, context.res);
+  } catch (error) {
+    console.error('Logout error:', error);
+    
+    // Return a graceful response instead of throwing an error
+    return {
+      success: false,
+      message: 'Failed to logout properly, but session has been invalidated'
+    };
   }
+}
 
   @Mutation(() => VerifyEmailResponse)
   async verifyEmail(

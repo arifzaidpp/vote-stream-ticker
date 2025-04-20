@@ -217,15 +217,15 @@ export class UserAuthService {
         // Begin transaction for session handling
         const result = await this.prisma.$transaction(async (tx) => {
           // Check session limits (max 2 active sessions)
-          const activeSessions = await getUserSessionsCount(
-            tx as PrismaClient,
-            user.id,
-          );
-          if (activeSessions >= 2) {
-            throw new UnauthorizedException(
-              'Maximum number of active sessions reached. Please log out from another device.',
-            );
-          }
+          // const activeSessions = await getUserSessionsCount(
+          //   tx as PrismaClient,
+          //   user.id,
+          // );
+          // if (activeSessions >= 2) {
+          //   throw new UnauthorizedException(
+          //     'Maximum number of active sessions reached. Please log out from another device.',
+          //   );
+          // }
 
           // Create a new session
           const sessionId = await createUserSession(

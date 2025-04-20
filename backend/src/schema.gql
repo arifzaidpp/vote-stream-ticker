@@ -67,6 +67,7 @@ type ElectionPaginated {
 }
 
 type ElectionResponse {
+  accessCode: String!
   booths: [BoothResponse!]!
   createdAt: DateTime!
   id: String!

@@ -1,6 +1,6 @@
 
 import { Award } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const Header = () => {
   const [currentTime, setCurrentTime] = useState(new Date());

@@ -2,15 +2,18 @@ import React from 'react';
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Edit2, Trash2 } from 'lucide-react';
+import { Eye, Edit2, Trash2, Vote } from 'lucide-react';
 
 interface ElectionCardProps {
   title: string;
   date: string;
   status: 'Draft' | 'Ongoing' | 'Completed';
-  onClickView: () => void;
+  voterCount: number;
+  accessCode: string;
+  onClickCount: () => void;
   onClickEdit: () => void;
   onClickDelete: () => void;
+  isDeleting?: boolean;
 }
 
 const getStatusColor = (status: string) => {
@@ -30,9 +33,12 @@ const ElectionCard: React.FC<ElectionCardProps> = ({
   title,
   date,
   status,
-  onClickView,
+  voterCount,
+  accessCode,
+  onClickCount,
   onClickEdit,
-  onClickDelete
+  onClickDelete,
+  isDeleting
 }) => {
   return (
     <Card className="w-full transition-all hover:shadow-lg">
@@ -42,18 +48,24 @@ const ElectionCard: React.FC<ElectionCardProps> = ({
       </CardHeader>
       <CardContent>
         <p className="text-sm text-gray-500">
-          Scheduled for: {date}
+          Created At: {date}
+        </p>
+        <p className="text-sm text-gray-500">
+          Total Voters: {voterCount}
+        </p>
+        <p className="text-sm text-gray-500">
+          Election Access Code: {accessCode}
         </p>
       </CardContent>
       <CardFooter className="flex justify-end gap-2">
         <Button
           variant="outline"
           size="sm"
-          onClick={onClickView}
+          onClick={onClickCount}
           className="flex items-center gap-1"
         >
-          <Eye className="h-4 w-4" />
-          View
+          <Vote className="h-4 w-4" />
+          Count Votes
         </Button>
         <Button
           variant="outline"
@@ -68,10 +80,19 @@ const ElectionCard: React.FC<ElectionCardProps> = ({
           variant="outline"
           size="sm"
           onClick={onClickDelete}
-          className="flex items-center gap-1 text-red-600 hover:text-red-700"
+          disabled={isDeleting}
+          className={`flex items-center gap-1 text-red-600 hover:text-red-700 ${
+            isDeleting ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
-          <Trash2 className="h-4 w-4" />
-          Delete
+          {isDeleting ? (
+            <span>Deleting...</span>
+          ) : (
+            <>
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </>
+          )}
         </Button>
       </CardFooter>
     </Card>

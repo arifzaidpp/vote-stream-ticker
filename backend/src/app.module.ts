@@ -164,7 +164,10 @@ import { CountingModule } from './modules/counting/counting.module';
           }),
           
 
-          cors: configService.get('app.cors'),
+          cors: {
+            origin: true, // Instead of configService.get('app.cors')
+            credentials: true,
+          },
 
           // Updated subscriptions configuration
           subscriptions: subscriptionsEnabled

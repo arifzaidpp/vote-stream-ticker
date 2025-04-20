@@ -1,26 +1,15 @@
-// src/election/election.service.ts
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ElectionResponseDto } from './dto/election-response.dto';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { CreateElectionDto } from './dto/election/create-election.input';
 import { CandidatePosition } from './enums/candidate-position.enum';
 import { UpdateElectionDto } from './dto/election/update-election.input';
-import { CacheService } from 'src/shared/cache/cache.service';
+import { CacheService, CacheKeys } from 'src/shared/cache/cache.service';
 import { PaginationWithSearchInput } from 'src/common/dto/pagination.dto';
 import { SortDirection, SortInput } from 'src/common/dto/sort.dto';
 import { SuccessResponse } from 'src/common/models/pagination.model';
-import { transformDates } from 'src/common/utils/date.utils';
 import { withErrorHandling } from 'src/common/utils/application-error.utils';
 import { generateWhereClause } from 'src/common/utils/where-clause.utils';
-
-// Cache keys for election entities
-export const electionCacheKeys = {
-  election: (id: string) => `election:id-${id}`,
-  electionByAccessCode: (accessCode: string) => `election:access-code-${accessCode}`,
-  userElections: (userId: number, search?: string, take?: number, skip?: number, field?: string, direction?: string, filter?: any) =>
-    `elections:user-${userId}:${search || ''}:${take || ''}:${skip || ''}:${field || ''}:${direction || ''}:${JSON.stringify(filter) || ''}`,
-  electionCount: (userId: number, filter?: any) => `election:count:user-${userId}:${JSON.stringify(filter) || ''}`,
-};
 
 export interface ElectionPaginated {
   items: ElectionResponseDto[];
@@ -38,13 +27,16 @@ export interface ElectionFilter {
 @Injectable()
 export class ElectionService {
   private readonly logger = new Logger(ElectionService.name);
-  private readonly ttl = 7 * 24 * 60 * 60; // 1 week cache TTL
+  private readonly ENTITY_TYPE = 'election';
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly cacheService: CacheService,
-  ) { }
+  ) {}
 
+  /**
+   * Create a new election
+   */
   async createElection(dto: CreateElectionDto, userId: number): Promise<ElectionResponseDto> {
     return withErrorHandling(async () => {
       // Calculate total voters based on booths
@@ -56,8 +48,7 @@ export class ElectionService {
           name: dto.name,
           logo: dto.logo,
           totalVoters: totalVoters,
-          // Link the election to the user creating it
-          userId: userId ,
+          userId: userId,
           booths: dto.booths
             ? {
               create: dto.booths.map((b) => ({
@@ -96,7 +87,7 @@ export class ElectionService {
       });
 
       // Invalidate user elections cache
-      await this.invalidateCache(undefined, userId);
+      await this.invalidateUserElectionCaches(userId);
 
       return election as ElectionResponseDto;
     }, {
@@ -105,6 +96,9 @@ export class ElectionService {
     });
   }
 
+  /**
+   * Update an existing election
+   */
   async updateElection(dto: UpdateElectionDto, userId: number): Promise<ElectionResponseDto> {
     return withErrorHandling(async () => {
       // Prepare the update data
@@ -120,7 +114,6 @@ export class ElectionService {
       if (dto.booths && dto.booths.length > 0) {
         // Calculate new total voters based on booths
         const totalVoters = dto.booths.reduce((sum, booth) => {
-          // For each booth, use its voterCount if provided, otherwise use 0
           return sum + (booth.voterCount ?? 0);
         }, 0);
 
@@ -129,7 +122,7 @@ export class ElectionService {
         // Set up booth updates
         updateData.booths = {
           updateMany: dto.booths
-            .filter(booth => booth.id) // Only include booths with IDs
+            .filter(booth => booth.id)
             .map(booth => ({
               where: { id: booth.id },
               data: {
@@ -144,7 +137,7 @@ export class ElectionService {
       if (dto.parties && dto.parties.length > 0) {
         updateData.parties = {
           updateMany: dto.parties
-            .filter(party => party.id) // Only include parties with IDs
+            .filter(party => party.id)
             .map(party => {
               const partyData: any = {
                 where: { id: party.id },
@@ -162,9 +155,7 @@ export class ElectionService {
 
         // Handle candidate updates for each party
         for (const party of dto.parties) {
-          // For the candidate update section:
           if (party.candidates && party.candidates.length > 0) {
-            // We need to handle this separately due to the nested structure
             for (const candidate of party.candidates) {
               if (candidate.id) {
                 await this.prisma.candidate.update({
@@ -172,11 +163,8 @@ export class ElectionService {
                   data: {
                     ...(candidate.name !== undefined && { name: candidate.name }),
                     ...(candidate.photo !== undefined && { photo: candidate.photo }),
-                    // Cast string position to CandidatePosition enum
                     ...(candidate.position !== undefined && {
-                      position: {
-                        set: candidate.position as CandidatePosition
-                      }
+                      position: candidate.position as CandidatePosition
                     }),
                   },
                 });
@@ -201,7 +189,7 @@ export class ElectionService {
       });
 
       // Invalidate affected caches
-      await this.invalidateCache(dto.id, userId);
+      await this.invalidateElectionCaches(dto.id, userId);
 
       return election as ElectionResponseDto;
     }, {
@@ -210,54 +198,120 @@ export class ElectionService {
     });
   }
 
+  /**
+   * Delete an election by ID
+   */
   async deleteElection(id: string, userId: number): Promise<ElectionResponseDto> {
     return withErrorHandling(async () => {
-      const election = await this.prisma.election.delete({
+      // First retrieve the election to have data for cache invalidation
+      const election = await this.prisma.election.findUnique({
         where: { id },
-        include: {
-          booths: true,
-          parties: {
-            include: {
-              candidates: true,
+        select: { id: true, accessCode: true },
+      });
+
+      if (!election) {
+        throw new NotFoundException('Election not found');
+      }
+
+      // Delete in a transaction to ensure all related entities are removed
+      const deletedElection = await this.prisma.$transaction(async (tx) => {
+        // Delete related results before deleting counting rounds
+        await tx.result.deleteMany({
+          where: { countingRound: { booth: { electionId: id } } },
+        });
+
+        // Delete related counting rounds after results are removed
+        await tx.countingRound.deleteMany({
+          where: { booth: { electionId: id } },
+        });
+
+        // Delete booths after related counting rounds are removed
+        await tx.booth.deleteMany({
+          where: { electionId: id },
+        });
+
+        // Delete candidates before parties
+        await tx.candidate.deleteMany({
+          where: { party: { electionId: id } },
+        });
+
+        // Delete parties
+        await tx.party.deleteMany({
+          where: { electionId: id },
+        });
+
+        // Finally delete the election
+        return tx.election.delete({
+          where: { id },
+          include: {
+            booths: true,
+            parties: {
+              include: {
+                candidates: true,
+              },
             },
           },
-        },
+        });
       });
 
       // Invalidate affected caches
-      await this.invalidateCache(id, userId);
+      await this.invalidateElectionCaches(id, userId);
 
-      return election as ElectionResponseDto;
+      return deletedElection as ElectionResponseDto;
     }, {
       entityName: 'election',
       operation: 'delete',
     });
   }
 
+  /**
+   * Delete multiple elections by IDs
+   */
   async deleteManyElections(ids: string[], userId: number): Promise<SuccessResponse> {
     return withErrorHandling(async () => {
-      const response = await this.prisma.$transaction(async (prisma) => {
-        // Check if all elections exist before attempting to delete
-        const elections = await prisma.election.findMany({
-          where: { id: { in: ids } },
-        });
-
-        if (elections.length !== ids.length) {
-          throw new NotFoundException('One or more elections not found');
-        }
-
-        // Delete the elections
-        await prisma.election.deleteMany({
-          where: { id: { in: ids } },
-        });
-
-        return elections;
+      // Fetch elections first to get their access codes for cache invalidation
+      const elections = await this.prisma.election.findMany({
+        where: { id: { in: ids } },
+        select: { id: true, accessCode: true },
       });
 
-      // After transaction completes
-      for (const election of response) {
-        await this.invalidateCache(election.id, userId);
+      if (elections.length !== ids.length) {
+        throw new NotFoundException('One or more elections not found');
       }
+
+      // Delete in a transaction
+      await this.prisma.$transaction(async (tx) => {
+        // Delete related data first
+        await tx.result.deleteMany({
+          where: { countingRound: { booth: { electionId: { in: ids } } } },
+        });
+
+        await tx.countingRound.deleteMany({
+          where: { booth: { electionId: { in: ids } } },
+        });
+
+        await tx.booth.deleteMany({
+          where: { electionId: { in: ids } },
+        });
+
+        await tx.candidate.deleteMany({
+          where: { party: { electionId: { in: ids } } },
+        });
+
+        await tx.party.deleteMany({
+          where: { electionId: { in: ids } },
+        });
+
+        // Finally delete the elections
+        await tx.election.deleteMany({
+          where: { id: { in: ids } },
+        });
+      });
+
+      // Invalidate caches for all deleted elections
+      await Promise.all(elections.map(election => 
+        this.invalidateElectionCaches(election.id, userId)
+      ));
 
       return {
         success: true,
@@ -269,6 +323,9 @@ export class ElectionService {
     });
   }
 
+  /**
+   * Get all elections for a user with pagination, sorting and filtering
+   */
   async getAllElectionsByUserId(
     userId: number,
     pagination?: PaginationWithSearchInput,
@@ -279,7 +336,7 @@ export class ElectionService {
     const { field = 'createdAt', direction = SortDirection.DESC } = sort || {};
 
     // Generate unique cache key including all parameters
-    const cacheKey = electionCacheKeys.userElections(
+    const cacheKey = CacheKeys.election.list(
       userId,
       search,
       take,
@@ -289,225 +346,183 @@ export class ElectionService {
       filter,
     );
 
-    // Check cache first
-    const cachedElections = await this.cacheService.get<ElectionPaginated>(cacheKey);
-    console.log('cachedElections', cachedElections);
+    return this.cacheService.wrap<ElectionPaginated>(
+      cacheKey,
+      async () => {
+        // Construct the where filter dynamically
+        const where = generateWhereClause(
+          search,
+          ['name'],
+          {
+            ...filter,
+            userId,
+          },
+        );
 
-    if (cachedElections) return transformDates(cachedElections);
+        const [elections, total] = await Promise.all([
+          this.prisma.election.findMany({
+            where,
+            orderBy: { [field]: direction },
+            skip,
+            take,
+            include: {
+              booths: true,
+              parties: {
+                include: {
+                  candidates: true,
+                },
+              },
+            },
+          }),
+          this.prisma.election.count({ where }),
+        ]);
 
-    // Construct the where filter dynamically
-    const where = generateWhereClause(
-      search, // search keyword
-      ['name'], // searchable fields
-      {
-        ...filter,
-        userId: userId,
-      }, // filter object with userId constraint
+        // Calculate if there are more items and prepare response
+        const hasMore = skip + take < total;
+        return {
+          items: elections as ElectionResponseDto[],
+          total,
+          hasMore,
+        };
+      },
+      this.cacheService.getTTL(this.ENTITY_TYPE)
     );
-
-    return withErrorHandling(async () => {
-      const elections = await this.prisma.election.findMany({
-        where,
-        orderBy: { [field]: direction },
-        skip,
-        take,
-        include: {
-          booths: true,
-          parties: {
-            include: {
-              candidates: true,
-            },
-          },
-        },
-      });
-
-      const total = await this.prisma.election.count({ where });
-
-      // Calculate if there are more items and prepare response
-      const hasMore = skip + take < total;
-      const response = {
-        items: elections as ElectionResponseDto[],
-        total,
-        hasMore,
-      };
-
-      // Save in cache if successful
-      try {
-        await this.cacheService.set(cacheKey, response, this.ttl);
-      } catch (cacheError) {
-        this.logger.error('Failed to cache elections', {
-          error: cacheError.message,
-        });
-      }
-
-      return response;
-    }, {
-      entityName: 'elections',
-      operation: 'find all',
-    });
-  }
-
-  async getElectionByAccessCode(accessCode: string): Promise<ElectionResponseDto> {
-    const cacheKey = electionCacheKeys.electionByAccessCode(accessCode);
-
-    // Try to get from cache
-    const cachedElection = await this.cacheService.get<ElectionResponseDto>(cacheKey);
-    if (cachedElection) return transformDates(cachedElection);
-
-    return withErrorHandling(async () => {
-      const election = await this.prisma.election.findUnique({
-        where: { accessCode },
-        include: {
-          booths: true,
-          parties: {
-            include: {
-              candidates: true,
-            },
-          },
-        },
-      });
-
-      if (!election) throw new NotFoundException('Election not found');
-
-      // Cache the result
-      try {
-        await this.cacheService.set(cacheKey, election, this.ttl);
-      } catch (error) {
-        this.logger.error('Failed to cache election by access code', {
-          error: error.message,
-        });
-      }
-
-      return election as ElectionResponseDto;
-    }, {
-      entityName: 'election',
-      operation: 'find by access code',
-    });
-  }
-
-  async getElectionById(id: string): Promise<ElectionResponseDto> {
-    const cacheKey = electionCacheKeys.election(id);
-
-    // Try to get from cache
-    const cachedElection = await this.cacheService.get<ElectionResponseDto>(cacheKey);
-    if (cachedElection) return transformDates(cachedElection);
-
-    return withErrorHandling(async () => {
-      const election = await this.prisma.election.findUnique({
-        where: { id },
-        include: {
-          booths: true,
-          parties: {
-            include: {
-              candidates: true,
-            },
-          },
-        },
-      });
-
-      if (!election) throw new NotFoundException('Election not found');
-
-      // Cache the result
-      try {
-        await this.cacheService.set(cacheKey, election, this.ttl);
-      } catch (error) {
-        this.logger.error('Failed to cache election', {
-          error: error.message,
-        });
-      }
-
-      return election as ElectionResponseDto;
-    }, {
-      entityName: 'election',
-      operation: 'find by id',
-    });
-  }
-
-  async countElections(userId: number, filter?: ElectionFilter): Promise<number> {
-    return withErrorHandling(async () => {
-      // Generate cache key for this filtered count
-      const cacheKey = electionCacheKeys.electionCount(userId, filter);
-
-      // Try to get count from cache
-      const cachedCount = await this.cacheService.get<number>(cacheKey);
-      if (cachedCount !== null && cachedCount !== undefined)
-        return cachedCount;
-
-      // Construct the where filter dynamically
-      const where = generateWhereClause(
-        undefined,
-        undefined,
-        {
-          ...filter,
-          users: {
-            some: {
-              id: userId,
-            },
-          },
-        }
-      );
-
-      // Count elections with the filter
-      const count = await this.prisma.election.count({ where });
-
-      try {
-        // Cache the result
-        await this.cacheService.set(cacheKey, count, this.ttl);
-      } catch (error) {
-        this.logger.error('Failed to cache election count', {
-          error: error.message,
-        });
-      }
-
-      return count;
-    }, {
-      entityName: 'election',
-      operation: 'count',
-    });
+    // No need to manually call transformDates here anymore - it's handled in the cache service
   }
 
   /**
-   * Invalidates various election-related caches
-   * Groups all cache invalidation logic in one place for consistency
-   *
-   * @param electionId - Optional specific election ID to invalidate
-   * @param userId - Optional user ID to invalidate associated elections
-   * @private - Internal function for service use only
+   * Get an election by access code
    */
-  private async invalidateCache(electionId?: string, userId?: number): Promise<void> {
-    try {
-      const cacheDeletions: Promise<void>[] = [];
+  async getElectionByAccessCode(accessCode: string): Promise<ElectionResponseDto> {
+    const cacheKey = CacheKeys.election.byAccessCode(accessCode);
 
-      // Specific election caches if ID is provided
-      if (electionId) {
-        cacheDeletions.push(
-          this.cacheService.delete(electionCacheKeys.election(electionId)),
-        );
-
-        // Also need to fetch the election to invalidate by access code if exists
+    return this.cacheService.wrap<ElectionResponseDto>(
+      cacheKey,
+      async () => {
         const election = await this.prisma.election.findUnique({
-          where: { id: electionId },
-          select: { accessCode: true },
+          where: { accessCode },
+          include: {
+            booths: true,
+            parties: {
+              include: {
+                candidates: true,
+              },
+            },
+          },
         });
 
-        if (election?.accessCode) {
-          cacheDeletions.push(
-            this.cacheService.delete(electionCacheKeys.electionByAccessCode(election.accessCode)),
-          );
-        }
+        if (!election) throw new NotFoundException('Election not found');
+        return election as ElectionResponseDto;
+      },
+      this.cacheService.getTTL(this.ENTITY_TYPE)
+    );
+  }
+
+  /**
+   * Get an election by ID
+   */
+  async getElectionById(id: string): Promise<ElectionResponseDto> {
+    const cacheKey = CacheKeys.election.byId(id);
+
+    return this.cacheService.wrap<ElectionResponseDto>(
+      cacheKey,
+      async () => {
+        const election = await this.prisma.election.findUnique({
+          where: { id },
+          include: {
+            booths: true,
+            parties: {
+              include: {
+                candidates: true,
+              },
+            },
+          },
+        });
+
+        if (!election) throw new NotFoundException('Election not found');
+        return election as ElectionResponseDto;
+      },
+      this.cacheService.getTTL(this.ENTITY_TYPE)
+    );
+  }
+
+  /**
+   * Count elections for a user with optional filters
+   */
+  async countElections(userId: number, filter?: ElectionFilter): Promise<number> {
+    const cacheKey = CacheKeys.election.count(userId, filter);
+
+    return this.cacheService.wrap<number>(
+      cacheKey,
+      async () => {
+        const where = generateWhereClause(
+          undefined,
+          undefined,
+          {
+            ...filter,
+            userId,
+          }
+        );
+
+        return this.prisma.election.count({ where });
+      },
+      this.cacheService.getTTL(this.ENTITY_TYPE)
+    );
+  }
+
+  /**
+   * Invalidate caches for a specific election
+   * @private
+   */
+  private async invalidateElectionCaches(electionId: string, userId?: number): Promise<void> {
+    try {
+      const cachesToInvalidate: string[] = [
+        CacheKeys.election.byId(electionId),
+      ];
+
+      // Get the election access code for additional cache invalidation
+      const election = await this.prisma.election.findUnique({
+        where: { id: electionId },
+        select: { accessCode: true },
+      });
+
+      if (election?.accessCode) {
+        cachesToInvalidate.push(
+          CacheKeys.election.byAccessCode(election.accessCode)
+        );
       }
 
-      // User-specific election caches if userId is provided
+      // Invalidate all caches at once
+      await this.cacheService.deleteMany(cachesToInvalidate);
+      
+      // If userId is provided, also invalidate user-related election caches
       if (userId) {
-        cacheDeletions.push(this.cacheService.delete(`elections:user-${userId}:*`));
-        cacheDeletions.push(this.cacheService.delete(`election:count:user-${userId}:*`));
+        await this.invalidateUserElectionCaches(userId);
       }
-
-      // Execute all cache deletions concurrently
-      await Promise.all(cacheDeletions);
+      
+      this.logger.debug(`Invalidated caches for election: ${electionId}`);
     } catch (error) {
-      this.logger.error('Failed to invalidate election cache', {
-        error: error.message,
+      this.logger.error(`Failed to invalidate election cache: ${error.message}`, {
+        electionId,
+        userId,
+      });
+    }
+  }
+
+  /**
+   * Invalidate all election caches for a specific user
+   * @private
+   */
+  private async invalidateUserElectionCaches(userId: number): Promise<void> {
+    try {
+      // For Redis-compatible stores, we can use pattern deletion
+      await this.cacheService.deletePattern(`elections:user-${userId}:*`);
+      await this.cacheService.deletePattern(`election:count:user-${userId}:*`);
+      
+      this.logger.debug(`Invalidated election caches for user: ${userId}`);
+    } catch (error) {
+      this.logger.error(`Failed to invalidate user election caches: ${error.message}`, {
+        userId,
       });
     }
   }

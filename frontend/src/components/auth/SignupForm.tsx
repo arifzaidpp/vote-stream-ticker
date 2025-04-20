@@ -1,17 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { AuthLayout } from './AuthLayout';
 import { Input } from '../ui/InputAdded';
 import { Button } from '../ui/ButtonAdded';
 import { GoogleAuthButton } from './GoogleAuthButton';
-// import { useAuth } from '../../hooks/useAuth';
+import { useMutation, gql } from "@apollo/client";
 
 export function SignupForm() {
   const navigate = useNavigate();
-  // const { register } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -20,28 +18,126 @@ export function SignupForm() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState({
+    minLength: false,
+    matches: false
+  });
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
+    
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: value
     }));
+    
+    // Validate password in real-time if the password field is being changed
+    if (name === 'password') {
+      validatePassword(value);
+    }
   };
+
+  // Password validation function
+  const validatePassword = (password) => {
+    // Check if password is at least 8 characters long
+    const hasMinLength = password.length >= 8;
+    
+    // Check if password includes at least one letter and one number
+    const hasLetterAndNumber = /^(?=.*[A-Za-z])(?=.*\d).+$/.test(password);
+    
+    setPasswordErrors({
+      minLength: !hasMinLength,
+      matches: !hasLetterAndNumber
+    });
+    
+    return hasMinLength && hasLetterAndNumber;
+  };
+
+  // GraphQL mutation for user registration
+  const REGISTER_USER = gql`
+    mutation Register($input: CreateUserDto!) {
+      register(input: $input) {
+        message
+        success
+      }
+    }
+  `;
+
+  const [registerUser] = useMutation(REGISTER_USER, {
+    onCompleted: (data) => {
+      if (data.register.success) {
+        toast({
+          title: 'Registration successful',
+          description: data.register.message || 'You can now log in with your credentials.',
+          variant: 'default',
+        });
+        navigate('/login');
+      } else {
+        toast({
+          title: 'Registration failed',
+          description: data.register.message || 'Please try again.',
+          variant: 'destructive',
+        });
+      }
+    },
+    onError: (error) => {
+      console.error("Registration error:", JSON.stringify(error, null, 2));
+
+      const errorMessage = error.graphQLErrors?.[0]?.message || error.networkError?.message || 'An unexpected error occurred.';
+      toast({
+        title: 'Registration failed',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    },
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Form data being submitted:", formData);
+
+    // Validate password before submission
+    if (!validatePassword(formData.password)) {
+      let errorMessages = [];
+      if (passwordErrors.minLength) {
+        errorMessages.push("Password must be at least 8 characters long");
+      }
+      if (passwordErrors.matches) {
+        errorMessages.push("Password must include at least one letter and one number");
+      }
+      
+      toast({
+        title: 'Invalid Password',
+        description: errorMessages.join('. '),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Check if passwords match
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: 'Passwords do not match',
         description: 'Please make sure both passwords are the same.',
-        variant: 'destructive',})
+        variant: 'destructive',
+      });
       return;
     }
+    
     setIsLoading(true);
-
+    
     try {
-      //  await register(formData);
-      
+      await registerUser({
+        variables: {
+          input: {
+            email: formData.email,
+            password: formData.password,
+            profile: {
+              fullName: formData.name,
+            },
+          },
+        },
+      });
     } catch (error) {
       toast({
         title: 'Registration failed',
@@ -83,29 +179,43 @@ export function SignupForm() {
           rightElement={null}
         />
 
-        <Input
-          label="Password"
-          type={showPassword ? 'text' : 'password'}
-          name="password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-          icon={Lock}
-          placeholder="Create a password"
-          rightElement={
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-            >
-              {showPassword ? (
-                <EyeOff className="h-5 w-5" />
-              ) : (
-                <Eye className="h-5 w-5" />
-              )}
-            </button>
-          }
-        />
+        <div className="space-y-2">
+          <Input
+            label="Password"
+            type={showPassword ? 'text' : 'password'}
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            icon={Lock}
+            placeholder="Create a password"
+            rightElement={
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
+            }
+          />
+          {formData.password && (
+            <div className="text-xs space-y-1 mt-1">
+              <div className={`flex items-center ${passwordErrors.minLength ? 'text-red-500' : 'text-green-500'}`}>
+                <span>{passwordErrors.minLength ? '✖' : '✓'}</span>
+                <span className="ml-1">Password must be at least 8 characters long</span>
+              </div>
+              <div className={`flex items-center ${passwordErrors.matches ? 'text-red-500' : 'text-green-500'}`}>
+                <span>{passwordErrors.matches ? '✖' : '✓'}</span>
+                <span className="ml-1">Password must include at least one letter and one number</span>
+              </div>
+            </div>
+          )}
+        </div>
 
         <Input
           label="Confirm password"

@@ -29,6 +29,7 @@ export class ElectionResponseDto {
   logo?: string;
   status: string;
   totalVoters: number;
+  accessCode: string;
   votingCompletion: number;
   booths: BoothResponseDto[];
   parties: PartyResponseDto[];

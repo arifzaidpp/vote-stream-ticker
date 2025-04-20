@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,10 +7,11 @@ import { HexColorPicker } from "react-colorful";
 import { Image, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { uploadFile, deleteFile } from '@/utils/storageUtil';
 
 interface PartyFormProps {
   partyName: string;
-  logo: File | null;
+  logo: File | null | string;
   color: string;
   onPartyChange: (field: 'name' | 'logo' | 'color', value: string | File | null) => void;
   onRemove: () => void;
@@ -23,6 +24,30 @@ const PartyForm: React.FC<PartyFormProps> = ({
   onPartyChange,
   onRemove
 }) => {
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
+  // Generate data URL preview for File objects
+  useEffect(() => {
+    if (logo instanceof File) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setLogoPreview(e.target?.result as string);
+        }
+      };
+      reader.readAsDataURL(logo);
+    } else if (typeof logo === 'string') {
+      setLogoPreview(logo);
+    } else {
+      setLogoPreview(null);
+    }
+    
+    // Clean up if needed
+    return () => {
+      // No clean up needed for data URLs
+    };
+  }, [logo]);
+
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
       'image/*': ['.jpeg', '.jpg', '.png']
@@ -35,7 +60,34 @@ const PartyForm: React.FC<PartyFormProps> = ({
     }
   });
 
-  const logoUrl = logo ? URL.createObjectURL(logo) : null;
+  const handleRemoveLogo = async () => {
+    // If the logo is a URL (string), attempt to delete it from storage
+    if (typeof logo === 'string') {
+      try {
+        await deleteFile(logo);
+      } catch (error) {
+        console.error(`Error deleting party logo: ${error}`);
+      }
+    }
+    
+    // Update state to remove the logo
+    onPartyChange('logo', null);
+    setLogoPreview(null);
+  };
+
+  const handleRemoveParty = async () => {
+    // If the logo is a URL (string), attempt to delete it from storage before removing the party
+    if (typeof logo === 'string') {
+      try {
+        await deleteFile(logo);
+      } catch (error) {
+        console.error(`Error deleting party logo during party removal: ${error}`);
+      }
+    }
+    
+    // Call the parent's onRemove function
+    onRemove();
+  };
 
   return (
     <Card className="mb-6">
@@ -45,7 +97,7 @@ const PartyForm: React.FC<PartyFormProps> = ({
           variant="ghost"
           size="sm"
           className="text-red-500 hover:text-red-700"
-          onClick={onRemove}
+          onClick={handleRemoveParty}
         >
           Remove Party
         </Button>
@@ -66,20 +118,21 @@ const PartyForm: React.FC<PartyFormProps> = ({
             <div
               {...getRootProps()}
               className={`border-2 border-dashed rounded-lg h-full flex items-center justify-center cursor-pointer
-                ${logoUrl ? 'border-none' : 'border-gray-300 hover:border-gray-400'}`}
+                ${logo ? 'border-none' : 'border-gray-300 hover:border-gray-400'}`}
             >
               <input {...getInputProps()} />
-              {logoUrl ? (
+              {logoPreview ? (
                 <>
                   <img
-                    src={logoUrl}
+                    src={logoPreview}
                     alt="Party logo"
                     className="w-full h-full object-cover rounded-lg"
                   />
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onPartyChange('logo', null);
+                      handleRemoveLogo();
                     }}
                     className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                   >
