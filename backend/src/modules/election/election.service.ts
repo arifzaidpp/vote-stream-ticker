@@ -38,6 +38,8 @@ export class ElectionService {
    * Create a new election
    */
   async createElection(dto: CreateElectionDto, userId: number): Promise<ElectionResponseDto> {
+    console.log('dto', dto);
+    
     return withErrorHandling(async () => {
       // Calculate total voters based on booths
       const totalVoters = dto.booths?.reduce((sum, booth) => sum + booth.voterCount, 0) || 0;
@@ -49,6 +51,7 @@ export class ElectionService {
           logo: dto.logo,
           totalVoters: totalVoters,
           userId: userId,
+          accessCode: dto.accessCode,
           booths: dto.booths
             ? {
               create: dto.booths.map((b) => ({
@@ -416,6 +419,22 @@ export class ElectionService {
       },
       this.cacheService.getTTL(this.ENTITY_TYPE)
     );
+  }
+
+  /**
+   * Verify if an election access code is valid
+   */
+  async verifyElectionAccessCode(accessCode: string): Promise<SuccessResponse> {
+    const election = await this.prisma.election.findUnique({
+      where: { accessCode },
+    });
+    if (!election) {
+      throw new NotFoundException('Election not found');
+    }
+    return {
+      success: true,
+      message: 'Access code is valid',
+    };
   }
 
   /**

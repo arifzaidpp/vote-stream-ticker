@@ -113,12 +113,22 @@ model Booth {
   id            String    @id @default(uuid()) @map("id")
   boothNumber   Int       @map("booth_number")
   voterCount    Int       @map("voter_count")
+  status BoothStatus @default(PENDING) @map("status")
   election      Election  @relation(fields: [electionId], references: [id])
   electionId    String    @map("election_id")
   totalVotesCounted Int @default(0) @map("total_votes_counted")
   countingRounds CountingRound[]
 
   @@map("booths")
+  @@schema("election_schema")
+}
+
+enum BoothStatus {
+  PENDING
+  COUNTING
+  COMPLETED
+
+  @@map("booth_status")
   @@schema("election_schema")
 }
 
@@ -162,12 +172,21 @@ model CountingRound {
   roundNumber Int      @map("round_number")
   booth       Booth    @relation(fields: [boothId], references: [id])
   boothId     String   @map("booth_id")
-  isPublished Boolean  @default(false) @map("is_published")
+  status      RoundStatus @default(DRAFT) @map("status")
+  voteValue   Float    @default(0) @map("vote_value")
   results     Result[]
   createdAt   DateTime @default(now()) @map("created_at")
-  countedAt DateTime @default(now()) @map("counted_at")
+  countedAt   DateTime @default(now()) @map("counted_at")
 
   @@map("counting_rounds")
+  @@schema("election_schema")
+}
+
+enum RoundStatus {
+  DRAFT
+  PUBLISHED
+
+  @@map("round_status")
   @@schema("election_schema")
 }
 

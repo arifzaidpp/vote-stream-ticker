@@ -13,6 +13,7 @@ interface PartyFormProps {
   partyName: string;
   logo: File | null | string;
   color: string;
+  isEditMode?: boolean;
   onPartyChange: (field: 'name' | 'logo' | 'color', value: string | File | null) => void;
   onRemove: () => void;
 }
@@ -21,6 +22,7 @@ const PartyForm: React.FC<PartyFormProps> = ({
   partyName,
   logo,
   color,
+  isEditMode = false,
   onPartyChange,
   onRemove
 }) => {
@@ -93,14 +95,14 @@ const PartyForm: React.FC<PartyFormProps> = ({
     <Card className="mb-6">
       <CardHeader className="pb-3 flex justify-between items-center">
         <h3 className="text-lg font-semibold">Party Details</h3>
-        <Button
+        {!isEditMode && <Button
           variant="ghost"
           size="sm"
           className="text-red-500 hover:text-red-700"
           onClick={handleRemoveParty}
         >
           Remove Party
-        </Button>
+        </Button>}
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">

@@ -100,13 +100,75 @@ import {
         this.server.to(`election_${data.electionId}`).emit('roundPublished', {
           updatedAt: new Date(),
           roundId: updatedRound.id,
-          isPublished: updatedRound.isPublished,
+          status: updatedRound.status,
           results: updatedRound.results
         });
         
         return { success: true, round: updatedRound };
       } catch (error) {
         client.emit('countingError', { message: error.message });
+        return { success: false, error: error.message };
+      }
+    }
+
+    @UseGuards(WsJwtAuthGuard)
+    @SubscribeMessage('startBoothCounting')
+    async handleStartBoothCounting(
+      @ConnectedSocket() client: Socket,
+      @MessageBody() data: { boothId: string, electionId: string }
+    ) {
+      try {
+        // Start counting for the specified booth
+        const result = await this.countingService.startBoothCounting(data.boothId);
+
+        if (result) {
+          // Notify the client that the operation was successful
+          client.emit('boothCountingStarted', { success: true });
+
+          // Broadcast the updated booth status to all clients in the election room
+          this.server.to(`election_${data.electionId}`).emit('boothCountingStarted', {
+            boothId: data.boothId,
+            electionId: data.electionId,
+            status: 'COUNTING',
+          });
+        } else {
+          throw new Error('Failed to start booth counting.');
+        }
+
+        return { success: true, result };
+      } catch (error) {
+        client.emit('boothCountingStarted', { success: false, error: error.message });
+        return { success: false, error: error.message };
+      }
+    }
+
+    @UseGuards(WsJwtAuthGuard)
+    @SubscribeMessage('completeBoothCounting')
+    async handleCompleteBoothCounting(
+      @ConnectedSocket() client: Socket,
+      @MessageBody() data: { boothId: string, electionId: string }
+    ) {
+      try {
+        // Complete counting for the specified booth
+        const result = await this.countingService.completeBoothCounting(data.boothId);
+
+        if (result) {
+          // Notify the client that the operation was successful
+          client.emit('boothCountingCompleted', { success: true });
+
+          // Broadcast the updated booth status to all clients in the election room
+          this.server.to(`election_${data.electionId}`).emit('boothCountingCompleted', {
+            boothId: data.boothId,
+            electionId: data.electionId,
+            status: 'COMPLETED',
+          });
+        } else {
+          throw new Error('Failed to complete booth counting.');
+        }
+
+        return { success: true, result };
+      } catch (error) {
+        client.emit('boothCountingCompleted', { success: false, error: error.message });
         return { success: false, error: error.message };
       }
     }

@@ -19,6 +19,7 @@ const GET_ELECTIONS = gql`
         name
         logo
         status
+        accessCode
         totalVoters
         votingCompletion
         createdAt

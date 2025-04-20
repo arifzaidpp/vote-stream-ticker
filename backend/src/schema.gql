@@ -108,6 +108,7 @@ type Mutation {
   setPasswordForOAuthUser(input: SetPasswordInput!): SuccessResponse!
   updateElection(input: UpdateElectionDto!): ElectionResponse!
   updateUserProfile(input: UpdateProfileInput!): User!
+  verifyElectionAccessCode(accessCode: String!): SuccessResponse!
   verifyEmail(input: VerifyEmailDto!): VerifyEmailResponse!
 }
 

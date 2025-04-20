@@ -25,6 +25,7 @@ const CREATE_ELECTION = gql`
       status
       totalVoters
       votingCompletion
+      accessCode
       createdAt
       updatedAt
       parties {
@@ -321,32 +322,15 @@ const ElectionSetup = () => {
         totalVoters: 0
       }));
       setBooths([...booths, ...newBooths]);
-    } else if (currentCount < booths.length) {
-      // In edit mode, only remove booths that don't have an associated database ID
-      if (isEditMode) {
-        // First try to remove booths without a boothNumber (new booths)
-        let updatedBooths = [...booths];
-        const boothsToRemove = updatedBooths.length - currentCount;
-        
-        if (boothsToRemove > 0) {
-          // First remove booths without boothNumber (new booths)
-          const newBooths = updatedBooths.filter(booth => !booth.boothNumber);
-          if (newBooths.length >= boothsToRemove) {
-            // Remove only from new booths
-            updatedBooths = updatedBooths.filter(booth => 
-              booth.boothNumber || newBooths.indexOf(booth) >= boothsToRemove
-            );
-          } else {
-            // Remove all new booths and some existing ones
-            updatedBooths = updatedBooths.filter(booth => booth.boothNumber)
-              .slice(0, currentCount);
-          }
-          setBooths(updatedBooths);
-        }
-      } else {
-        // In create mode, simply trim the array
-        setBooths(booths.slice(0, currentCount));
-      }
+    } else if (currentCount > booths.length) {
+      // Add new booths WITH proper booth numbers
+      const newBooths = Array.from({ length: currentCount - booths.length }, (_, index) => ({
+        id: `new-${Date.now()}-${index}`,
+        name: `Booth ${booths.length + index + 1}`,
+        boothNumber: booths.length + index + 1, // Add this line to set proper booth numbers
+        totalVoters: 0
+      }));
+      setBooths([...booths, ...newBooths]);
     }
   }, [boothCount, booths.length, isEditMode, loadingElection]);
 
@@ -535,11 +519,16 @@ const ElectionSetup = () => {
       }));
       
       // Format booths
-      const formattedBooths = booths.map((booth) => ({
-        ...(booth.boothNumber && { id: booth.id }), // Include ID if available (for edit mode)
-        boothNumber: booth.boothNumber || parseInt(booth.id),
-        voterCount: booth.totalVoters
-      }));
+// Format booths
+const formattedBooths = booths.map((booth, index) => {
+  // Create the basic booth data without ID
+  const boothData = {
+    boothNumber: booth.boothNumber || index + 1, // Use existing number or generate sequential number
+    voterCount: booth.totalVoters
+  };
+  
+  return boothData;
+});
       
       if (isEditMode) {
         // Update existing election
@@ -565,6 +554,9 @@ const ElectionSetup = () => {
           totalVoters: totalVoters,
           accessCode: generateAccessCode(),
         };
+
+        console.log('Create election input:', input);
+        
         
         await createElection({ 
           variables: { input },
@@ -696,7 +688,7 @@ const ElectionSetup = () => {
           </div>
 
           <div className="space-y-4">
-            <div className="space-y-2">
+            {!isEditMode && <div className="space-y-2">
               <Label htmlFor="boothCount">Number of Booths</Label>
               <div className="flex items-center gap-2">
                 <Button
@@ -726,7 +718,7 @@ const ElectionSetup = () => {
               {errors.boothCount && (
                 <p className="text-red-500 text-sm">{errors.boothCount.message as string}</p>
               )}
-            </div>
+            </div>}
 
             <div className="space-y-4 border rounded-lg p-4">
               <h3 className="font-medium">Booth Details</h3>
@@ -757,7 +749,7 @@ const ElectionSetup = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold">Party Management</h2>
-            <Button type="button" onClick={addParty}>Add Party</Button>
+            {!isEditMode && <Button type="button" onClick={addParty}>Add Party</Button>}
           </div>
 
           {parties.length === 0 ? (
@@ -770,6 +762,7 @@ const ElectionSetup = () => {
                 <PartyForm
                   partyName={party.name}
                   logo={party.logo}
+                  isEditMode={isEditMode}
                   // logoPreview={party.logoPreview}
                   color={party.color}
                   onPartyChange={(field, value) => handlePartyChange(party.id, field, value)}

@@ -20,6 +20,10 @@ export class SubmitVoteCountDto {
   
   @IsNumber()
   roundNumber: number;
+
+  @IsNumber()
+  @Min(1)
+  voteValue: number;
   
   @IsArray()
   @ValidateNested({ each: true })

@@ -13,25 +13,26 @@ export class CountingService {
     const election = await this.prisma.election.findUnique({
       where: { id: electionId },
       include: {
-        booths: {
+      booths: {
+        orderBy: { id: 'desc' }, // Ensure booths are in descending order
+        include: {
+        countingRounds: {
+          // where: { status: 'PUBLISHED' },
           include: {
-            countingRounds: {
-              where: { isPublished: true },
-              include: {
-                results: {
-                  include: {
-                    candidate: true
-                  }
-                }
-              }
+          results: {
+            include: {
+            candidate: true
             }
           }
-        },
-        parties: {
-          include: {
-            candidates: true
           }
         }
+        }
+      },
+      parties: {
+        include: {
+        candidates: true
+        }
+      }
       }
     });
 
@@ -111,13 +112,21 @@ export class CountingService {
 
       if (countingRound) {
         // Only allow updates if the round is not published
-        if (countingRound.isPublished) {
+        if (countingRound.status === 'PUBLISHED') {
           throw new BadRequestException('Cannot update a published counting round');
         }
-
+      
         console.log('Existing counting round found:', countingRound);
         
-
+        // Update the counting round with the new voteValue
+        countingRound = await prisma.countingRound.update({
+          where: { id: countingRound.id },
+          data: {
+            voteValue: dto.voteValue
+          },
+          include: { results: true }
+        });
+      
         // Delete existing results
         await prisma.result.deleteMany({
           where: { roundId: countingRound.id }
@@ -127,7 +136,8 @@ export class CountingService {
         countingRound = await prisma.countingRound.create({
           data: {
             roundNumber: dto.roundNumber,
-            boothId: dto.boothId
+            boothId: dto.boothId,
+            voteValue: dto.voteValue,
           },
           include: {
             results: true
@@ -210,7 +220,7 @@ export class CountingService {
     // Set the round as published
     return this.prisma.countingRound.update({
       where: { id: roundId },
-      data: { isPublished: true },
+      data: { status: 'PUBLISHED' },
       include: {
         results: {
           include: {
@@ -218,6 +228,38 @@ export class CountingService {
           }
         }
       }
+    });
+  }
+
+  async startBoothCounting(boothId: string) {
+    const booth = await this.prisma.booth.findUnique({
+      where: { id: boothId }
+    });
+
+    if (!booth) {
+      throw new NotFoundException(`Booth with ID ${boothId} not found`);
+    }
+
+    // Set the booth as counting
+    return this.prisma.booth.update({
+      where: { id: boothId },
+      data: { status: 'COUNTING' }
+    });
+  }
+
+  async completeBoothCounting(boothId: string) {
+    const booth = await this.prisma.booth.findUnique({
+      where: { id: boothId }
+    });
+
+    if (!booth) {
+      throw new NotFoundException(`Booth with ID ${boothId} not found`);
+    }
+
+    // Set the booth as completed
+    return this.prisma.booth.update({
+      where: { id: boothId },
+      data: { status: 'COMPLETED' }
     });
   }
 }

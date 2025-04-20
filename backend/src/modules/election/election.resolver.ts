@@ -62,6 +62,14 @@ export class ElectionResolver {
     return electionResponse as unknown as ElectionResponse;
   }
 
+  @Mutation(() => SuccessResponse)
+  async verifyElectionAccessCode(
+    @Args('accessCode') accessCode: string
+  ): Promise<SuccessResponse> {
+    const electionResponse = await this.electionService.verifyElectionAccessCode(accessCode);
+    return electionResponse as unknown as SuccessResponse;
+  }
+
   @Query(() => Int)
   @UseGuards(GqlAuthGuard, RolesGuard)
   @Roles('ADMIN', 'ELECTION_CONTROLLER')
