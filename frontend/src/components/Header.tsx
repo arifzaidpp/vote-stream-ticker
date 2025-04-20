@@ -1,8 +1,10 @@
+import React, { useState, useEffect } from 'react';
+interface HeaderProps {
+  electionImg?: string;
+  electionName?: string;
+}
 
-import { Award } from 'lucide-react';
-import { useState, useEffect } from 'react';
-
-const Header = () => {
+const Header: React.FC<HeaderProps> = ({ electionImg, electionName = "DUIDC Election 2025" }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   
   useEffect(() => {
@@ -35,9 +37,9 @@ const Header = () => {
     <div className="bg-gradient-to-r from-blue-800 to-blue-900 text-white py-3 px-4 shadow-md">
       <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
         <div className="flex items-center space-x-2">
-          <Award className="h-8 w-8 text-yellow-500" />
+          <img src={electionImg} alt="Logo" className="h-8 w-8" />
           <h1 className="text-2xl md:text-3xl font-bold text-center md:text-left">
-            DUIDC Election 2025
+            {electionName}
           </h1>
         </div>
         

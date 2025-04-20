@@ -2,22 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import Header from '@/components/Header';
-import PartyCard from '@/components/PartyCard';
 import NewsTicker from '@/components/NewsTicker';
-import CandidateComparison from '@/components/LeadingCandidates';
-import LeadingCandidates from '@/components/LeadingParties';
-import VotingStats from '@/components/VotingStats';
 import BoothView from '@/components/BoothView';
-import Candidates from '@/components/Candidates';
 import { toast } from '@/hooks/use-toast';
 
 const Index = () => {
-  const { id: accessCode } = useParams();
+  const { id: electionId } = useParams();
   const navigate = useNavigate();
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [electionData, setElectionData] = useState(null);
-  const [boothData, setBoothData] = useState({});
+  interface Booth {
+    id: string;
+    name: string;
+    boothNumber: number;
+    status: 'PENDING' | 'COUNTING' | 'COMPLETED';
+    data: any[];
+    expectedVotes: number;
+    totalVotesCounted: number;
+  }
+  
+  const [boothData, setBoothData] = useState<Record<string, Booth>>({});
   const [totalData, setTotalData] = useState([]);
   const [totalVotes, setTotalVotes] = useState(0);
   const [pendingVotes, setPendingVotes] = useState(0);
@@ -30,49 +35,51 @@ const Index = () => {
   
   // Initialize socket connection
   useEffect(() => {
-    if (!accessCode || accessCode.trim() === '') {
-      console.error('No access code provided');
+    if (!electionId || electionId.trim() === '') {
       toast({
-      title: 'Access Code Missing',
-      description: 'Please provide a valid access code to proceed.',
-      variant: 'destructive',
+        title: 'Access Code Missing',
+        description: 'Please provide a valid access code to proceed.',
+        variant: 'destructive',
       });
-      // navigate('/'); // Redirect to home page if accessCode is missing
       return;
     }
 
     // Get token from localStorage
-    // const token = localStorage.getItem('token');
-    // if (!token) {
-    //   navigate('/login');
-    //   return;
-    // }
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
 
     // Initialize socket with auth token
-    const socketInstance = io(import.meta.env.VITE_GRAPHQL_API_URL, {
-      // auth: {
-      //   token
-      // }
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const socketInstance = io(apiUrl, {
+      extraHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
     });
-
-    setSocket(socketInstance);
-
-    // Socket event listeners
+    
+    // Socket event handlers
     socketInstance.on('connect', () => {
       setIsConnected(true);
-      console.log('Socket connected');
-      
-      // Join election room with accessCode
-      socketInstance.emit('joinElectionRoom', { electionId: accessCode });
+      toast({
+        title: "Connected",
+        description: "Real-time counting connection established",
+      });
+    
+      // Join election room when connected
+      if (electionId) {
+        socketInstance.emit('joinElectionRoom', { electionId });
+      }
     });
+    
+    setSocket(socketInstance);
 
     socketInstance.on('disconnect', () => {
       setIsConnected(false);
-      console.log('Socket disconnected');
     });
 
     socketInstance.on('connect_error', (err) => {
-      console.error('Connection error:', err);
       toast({
         title: 'Connection Error',
         description: `Failed to connect to server: ${err.message || 'Unknown error'}.`,
@@ -85,184 +92,372 @@ const Index = () => {
         socketInstance.disconnect();
       }
     };
-  }, [accessCode, navigate]);
+  }, [electionId, navigate]);
+
+  // Process candidate results from round data
+  const processRoundData = (roundData) => {
+    if (!roundData || !roundData.data || !Array.isArray(roundData.data)) {
+      return [];
+    }
+    
+    return roundData.data.map(candidate => ({
+      candidateId: candidate.id,
+      name: candidate.name,
+      partyId: candidate.partyId,
+      position: candidate.position,
+      photo: candidate.photo,
+      voteCount: candidate.votes || 0
+    }));
+  };
 
   // Handle initial election data
   useEffect(() => {
     if (socket) {
       socket.on('electionData', (data) => {
-        console.log('Received election data:', data);
-        setElectionData(data.election);
+        // Store the entire election data
+        setElectionData(data);
         
-        // Process booth data
+        // Initialize booth data
         const booths = {};
-        data.booths.forEach(booth => {
-          booths[booth.id] = {
-            id: booth.id,
-            name: booth.name,
-            status: booth.status,
-            data: processBoothResults(booth.results)
-          };
-        });
+        
+        if (data.booths && Array.isArray(data.booths)) {
+          // Create a mapping of parties for quicker reference
+          const partyMap = {};
+          if (data.parties && Array.isArray(data.parties)) {
+            data.parties.forEach(party => {
+              partyMap[party.id] = party;
+            });
+          }
+          
+          // Process each booth
+          data.booths.forEach(booth => {
+            // Only include booths that are counting or completed
+            if (booth.status === 'PENDING') return;
+            
+            const boothId = booth.id;
+            const boothNumber = booth.boothNumber || 0;
+            
+            // Find the latest counting round
+            let latestRound = null;
+            let latestRoundNumber = -1;
+            
+            if (booth.countingRounds && Array.isArray(booth.countingRounds)) {
+              booth.countingRounds.forEach(round => {
+                if (round.roundNumber > latestRoundNumber) {
+                  latestRound = round;
+                  latestRoundNumber = round.roundNumber;
+                }
+              });
+            }
+            
+            // Initialize party data structure for this booth
+            const boothPartyData = [];
+            
+            // Add party and candidate data
+            if (data.parties && Array.isArray(data.parties)) {
+              data.parties.forEach(party => {
+                const partyData = {
+                  partyId: party.id,
+                  partyName: party.name,
+                  color: party.color,
+                  logo: party.logo,
+                  candidates: []
+                };
+                
+                // Add candidates with their vote counts
+                if (party.candidates && Array.isArray(party.candidates)) {
+                  partyData.candidates = party.candidates.map(candidate => {
+                    // Find votes for this candidate in the latest round
+                    let votes = 0;
+                    
+                    if (latestRound && latestRound.results) {
+                      const resultEntry = latestRound.results.find(r => r.candidateId === candidate.id);
+                      if (resultEntry) {
+                        votes = resultEntry.voteCount || 0;
+                      }
+                    }
+                    
+                    // Create candidate object with booth-specific votes
+                    return {
+                      id: candidate.id,
+                      name: candidate.name,
+                      position: candidate.position,
+                      photo: candidate.photo || `https://api.dicebear.com/7.x/initials/svg?seed=${candidate.name}`,
+                      votes: votes,
+                      booth1Votes: boothNumber === 1 ? votes : 0,
+                      booth2Votes: boothNumber === 2 ? votes : 0
+                    };
+                  });
+                }
+                
+                boothPartyData.push(partyData);
+              });
+            }
+            
+            // Calculate total votes for this booth
+            let boothTotalVotes = 0;
+            if (latestRound && latestRound.results) {
+              boothTotalVotes = latestRound.results.reduce((sum, r) => sum + (r.voteCount || 0), 0);
+            }
+            
+        // Store booth data
+        booths[boothId] = {
+          id: boothId,
+          name: `Booth ${boothNumber}`,
+          boothNumber: boothNumber,
+          status: booth.status,
+          data: boothPartyData,
+          totalVotesCounted: boothTotalVotes
+        };
+
+        const activeBooths = Object.values(booths).filter((b: Booth) => b.status === 'COUNTING' || b.status === 'COMPLETED');
+          });
+        }
         
         setBoothData(booths);
         
         // Generate news messages
-        generateNewsMessages(data);
+        addNewsMessage(`Welcome to ${data.name} live results`);
+        const activeBooths = Object.values(booths).filter((b) => (b as Booth).status === 'COUNTING' || (b as Booth).status === 'COMPLETED');
+        addNewsMessage(`${activeBooths.length} booth(s) actively reporting results`);
         
-        // Calculate total data across all booths
-        calculateTotalData(booths);
+        // Calculate initial total data
+        calculateTotalData(Object.values(booths));
       });
     }
   }, [socket]);
 
-  // Handle real-time vote count updates
+  // Handle real-time updates
   useEffect(() => {
-    if (socket) {
-      socket.on('voteCountUpdated', (data) => {
-        console.log('Vote count updated:', data);
+    if (socket && electionData) {
+      // Handle round published event
+      socket.on('roundPublished', (data) => {
+        if (!data) return;
         
-        // Update specific booth data
-        setBoothData(prevBoothData => {
-          const updatedBoothData = { ...prevBoothData };
+        // Find which booth this belongs to
+        let targetBoothId = null;
+        let targetBoothNumber = 0;
+        
+        if (data.boothId) {
+          // If booth ID is directly provided
+          targetBoothId = data.boothId;
+          targetBoothNumber = boothData[data.boothId]?.boothNumber || 0;
+        } else if (data.roundId && electionData.booths) {
+          // Otherwise try to find the booth by round ID
+          for (const booth of electionData.booths) {
+            if (booth.countingRounds && booth.countingRounds.some(r => r.id === data.roundId)) {
+              targetBoothId = booth.id;
+              targetBoothNumber = booth.boothNumber || 0;
+              break;
+            }
+          }
+        }
+        
+        // If we couldn't identify a booth, use the first active booth as fallback
+        if (!targetBoothId) {
+          const activeBooths = Object.keys(boothData).filter(id => 
+            boothData[id].status === 'COUNTING' || boothData[id].status === 'COMPLETED'
+          );
+          if (activeBooths.length > 0) {
+            targetBoothId = activeBooths[0];
+            targetBoothNumber = boothData[targetBoothId].boothNumber || 0;
+          } else {
+            return; // Can't process without a target booth
+          }
+        }
+        
+        // Process results from data
+        let candidateResults = [];
+        if (data.data && Array.isArray(data.data)) {
+          candidateResults = processRoundData(data);
+        } else if (data.roundId && electionData.booths) {
+          // Try to find round data in election data
+          for (const booth of electionData.booths) {
+            if (booth.countingRounds) {
+              const round = booth.countingRounds.find(r => r.id === data.roundId);
+              if (round && round.results) {
+                candidateResults = round.results;
+                break;
+              }
+            }
+          }
+        }
+        
+        if (candidateResults.length === 0) return;
+        
+        // Calculate total votes for this round
+        const roundTotalVotes = candidateResults.reduce((sum, result) => 
+          sum + (result.voteCount || 0), 0);
+        
+        // Update booth data with new results
+        setBoothData(prev => {
+          const updated = { ...prev };
           
-          if (updatedBoothData[data.boothId]) {
-            updatedBoothData[data.boothId] = {
-              ...updatedBoothData[data.boothId],
-              data: processBoothResults(data.results)
+          if (updated[targetBoothId]) {
+            // Update each candidate's votes in the booth data
+            const updatedPartyData = [...updated[targetBoothId].data];
+            
+            updatedPartyData.forEach(party => {
+              if (party.candidates && Array.isArray(party.candidates)) {
+                party.candidates.forEach(candidate => {
+                  // Find this candidate in the results
+                  const resultEntry = candidateResults.find(r => 
+                    r.candidateId === candidate.id || r.id === candidate.id
+                  );
+                  
+                  if (resultEntry) {
+                    const votes = resultEntry.voteCount || 0;
+                    candidate.votes = votes;
+                    
+                    // Update booth-specific votes
+                    if (targetBoothNumber === 1) {
+                      candidate.booth1Votes = votes;
+                    } else if (targetBoothNumber === 2) {
+                      candidate.booth2Votes = votes;
+                    }
+                  }
+                });
+              }
+            });
+            
+            // Update the booth with new data
+            updated[targetBoothId] = {
+              ...updated[targetBoothId],
+              data: updatedPartyData,
+              totalVotesCounted: roundTotalVotes
             };
           }
           
-          return updatedBoothData;
+          return updated;
         });
         
         // Add news message
-        const boothName = boothData[data.boothId]?.name || `Booth ${data.boothId}`;
-        addNewsMessage(`New votes counted at ${boothName} - Updated at ${new Date().toLocaleTimeString()}`);
+        const roundRef = data.roundNumber || (data.roundId && data.roundId.substring(0, 5)) || "new";
+        addNewsMessage(`New results from Booth ${targetBoothNumber} - Round ${roundRef}`);
+        
+        // Force update of total data
+        setTimeout(() => calculateTotalData(Object.values(boothData)), 100);
       });
 
-      socket.on('roundPublished', (data) => {
-        console.log('Round published:', data);
-        addNewsMessage(`New counting round published - Round ${data.roundId}`);
-      });
-
+      // Handle booth status changes
       socket.on('boothCountingStarted', (data) => {
-        console.log('Booth counting started:', data);
-        const boothName = boothData[data.boothId]?.name || `Booth ${data.boothId}`;
-        addNewsMessage(`Counting started at ${boothName}`);
+        if (data.boothId) {
+          const boothNumber = boothData[data.boothId]?.boothNumber || 0;
+          
+          // Update booth status
+          setBoothData(prev => {
+            const updated = { ...prev };
+            if (updated[data.boothId]) {
+              updated[data.boothId] = {
+                ...updated[data.boothId],
+                status: 'COUNTING'
+              };
+            }
+            return updated;
+          });
+          
+          addNewsMessage(`Counting started at Booth ${boothNumber}`);
+        }
       });
 
       socket.on('boothCountingCompleted', (data) => {
-        console.log('Booth counting completed:', data);
-        const boothName = boothData[data.boothId]?.name || `Booth ${data.boothId}`;
-        addNewsMessage(`Counting completed at ${boothName}`);
+        if (data.boothId) {
+          const boothNumber = boothData[data.boothId]?.boothNumber || 0;
+          
+          // Update booth status
+          setBoothData(prev => {
+            const updated = { ...prev };
+            if (updated[data.boothId]) {
+              updated[data.boothId] = {
+                ...updated[data.boothId],
+                status: 'COMPLETED'
+              };
+            }
+            return updated;
+          });
+          
+          addNewsMessage(`Counting completed at Booth ${boothNumber}`);
+        }
       });
 
+      // Handle counting errors
       socket.on('countingError', (error) => {
-        console.error('Counting error:', error);
         toast({
           title: 'Counting Error',
           description: error.message || 'An error occurred during vote counting',
           variant: 'destructive',
         });
       });
+
+      return () => {
+        socket.off('roundPublished');
+        socket.off('boothCountingStarted');
+        socket.off('boothCountingCompleted');
+        socket.off('countingError');
+      };
     }
-  }, [socket, boothData]);
-
-  // Calculate total data whenever booth data changes
-  useEffect(() => {
-    calculateTotalData(boothData);
-  }, [boothData]);
-
-  // Process booth results into our party-candidate structure
-  const processBoothResults = (results) => {
-    if (!results || !Array.isArray(results)) return [];
-    
-    // Group by party
-    const parties = {};
-    
-    results.forEach(result => {
-      const partyId = result.party.id;
-      const candidateName = result.candidate.name;
-      const position = result.candidate.position;
-      const votes = result.votes;
-      
-      if (!parties[partyId]) {
-        parties[partyId] = {
-          partyId,
-          partyName: result.party.name,
-          color: result.party.color || getPartyColor(result.party.name),
-          logo: result.party.logo,
-          candidates: []
-        };
-      }
-      
-      // Add or update candidate
-      const existingCandidate = parties[partyId].candidates.find(c => c.name === candidateName);
-      if (existingCandidate) {
-        existingCandidate.votes = votes;
-      } else {
-        parties[partyId].candidates.push({
-          name: candidateName,
-          position,
-          votes
-        });
-      }
-    });
-    
-    // Convert to array
-    return Object.values(parties);
-  };
+  }, [socket, electionData, boothData]);
 
   // Calculate total data across all booths
   const calculateTotalData = (booths) => {
-    const parties = {};
+    // Only include non-pending booths
+    const activeBooths = booths.filter(booth => 
+      booth && (booth.status === 'COUNTING' || booth.status === 'COMPLETED')
+    );
+    
+    // Store party data with aggregated votes
+    const partyMap = {};
     let totalVoteCount = 0;
     
-    // Process each booth's data
-    Object.values(booths).forEach(booth => {
-      if (!booth || typeof booth !== 'object' || !('data' in booth)) return;
+    // Process each active booth
+    activeBooths.forEach(booth => {
+      if (!booth || !Array.isArray(booth.data)) return;
       
-      (Array.isArray(booth.data) ? booth.data : []).forEach(party => {
+      booth.data.forEach(party => {
         const partyId = party.partyId;
         
-        if (!parties[partyId]) {
-          parties[partyId] = {
+        // Initialize party entry if needed
+        if (!partyMap[partyId]) {
+          partyMap[partyId] = {
             ...party,
-            candidates: party.candidates.map(candidate => ({
-              ...candidate,
-              votes: 0
-            }))
+            candidates: party.candidates?.map(c => ({
+              ...c,
+              votes: 0,
+              booth1Votes: 0,
+              booth2Votes: 0
+            })) || []
           };
         }
         
         // Sum up votes for each candidate
-        party.candidates.forEach(candidate => {
-          const existingCandidate = parties[partyId].candidates.find(c => 
-            c.name === candidate.name && c.position === candidate.position
-          );
-          
-          if (existingCandidate) {
-            existingCandidate.votes += candidate.votes;
-          }
-          
-          totalVoteCount += candidate.votes;
-        });
+        if (party.candidates && Array.isArray(party.candidates)) {
+          party.candidates.forEach(candidate => {
+            // Find matching candidate in our aggregated data
+            const targetCandidate = partyMap[partyId].candidates.find(c => c.id === candidate.id);
+            
+            if (targetCandidate) {
+              // Add this candidate's votes to the total
+              targetCandidate.votes += candidate.votes || 0;
+              targetCandidate.booth1Votes += candidate.booth1Votes || 0;
+              targetCandidate.booth2Votes += candidate.booth2Votes || 0;
+              
+              // Add to total vote count
+              totalVoteCount += candidate.votes || 0;
+            }
+          });
+        }
       });
     });
     
-    setTotalData(Object.values(parties));
+    // Update state with calculated values
+    setTotalData(Object.values(partyMap));
     setTotalVotes(totalVoteCount);
     
-    // Calculate counting percentage and pending votes (if we have total expected votes from election data)
-    if (electionData && electionData.totalExpectedVotes) {
-      const expectedVotes = electionData.totalExpectedVotes;
+    // Calculate counting percentage and pending votes
+    if (electionData && electionData.totalVoters) {
+      const expectedVotes = electionData.totalVoters;
       setPendingVotes(Math.max(0, expectedVotes - totalVoteCount));
       setCountingPercentage(Math.round((totalVoteCount / expectedVotes) * 100));
-    } else {
-      // Fallback if no expected votes data
-      setPendingVotes(0);
-      setCountingPercentage(100);
     }
   };
 
@@ -274,111 +469,58 @@ const Index = () => {
     });
   };
 
-  // Generate initial news messages from election data
-  const generateNewsMessages = (data) => {
-    const messages = [];
-    
-    if (data.election) {
-      messages.push(`Welcome to ${data.election.name} live results`);
-    }
-    
-    if (data.booths && data.booths.length > 0) {
-      const countingBooths = data.booths.filter(booth => booth.status === 'COUNTING');
-      const completedBooths = data.booths.filter(booth => booth.status === 'COMPLETED');
-      
-      if (countingBooths.length > 0) {
-        messages.push(`Counting in progress at ${countingBooths.length} booth(s)`);
-      }
-      
-      if (completedBooths.length > 0) {
-        messages.push(`${completedBooths.length} booth(s) completed counting`);
-      }
-    }
-    
-    if (messages.length > 0) {
-      setNewsMessages(prev => [...messages, ...prev].slice(0, 5));
-    }
-  };
-
-  // Assign a color based on party name
-  const getPartyColor = (partyName) => {
-    const colors = ['blue', 'green', 'orange', 'purple', 'red', 'teal'];
-    let hash = 0;
-    
-    for (let i = 0; i < partyName.length; i++) {
-      hash = partyName.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    
-    return colors[Math.abs(hash) % colors.length];
-  };
-
-  // Helper function to get leading candidates for current view
+  // Get information about leading candidates for current view
   const getLeadingCandidates = () => {
     let data = [];
     
     if (activeView === 'total') {
       data = totalData;
     } else {
-      const boothId = activeView;
-      data = boothData[boothId]?.data || [];
+      data = boothData[activeView]?.data || [];
     }
     
-    if (!data || data.length === 0) {
-      return {
-        president: { name: 'N/A', partyName: 'N/A', partyColor: 'gray', votes: 0 },
-        secretary: { name: 'N/A', partyName: 'N/A', partyColor: 'gray', votes: 0 },
-        treasurer: { name: 'N/A', partyName: 'N/A', partyColor: 'gray', votes: 0 }
-      };
-    }
+    // Default candidate when no data is available
+    const defaultCandidate = { 
+      name: 'N/A', 
+      partyName: 'N/A', 
+      partyColor: 'gray', 
+      votes: 0, 
+      booth1Votes: 0, 
+      booth2Votes: 0,
+      photo: '' 
+    };
     
-    // Get all president candidates
-    const presidents = data.flatMap(party => 
-      party.candidates
-        .filter(c => c.position === 'President')
-        .map(c => ({
-          name: c.name,
-          partyName: party.partyName,
-          partyColor: party.color,
-          votes: c.votes,
-        }))
-    );
+    // Extract all candidates by position
+    const getAllCandidatesByPosition = (position) => {
+      return data.flatMap(party => 
+        (party.candidates || [])
+          .filter(c => c.position === position)
+          .map(c => ({
+            name: c.name,
+            partyName: party.partyName,
+            partyColor: party.color,
+            votes: c.votes || 0,
+            booth1Votes: c.booth1Votes || 0,
+            booth2Votes: c.booth2Votes || 0,
+            photo: c.photo || `https://api.dicebear.com/7.x/initials/svg?seed=${c.name}`
+          }))
+      );
+    };
     
-    // Get all secretary candidates
-    const secretaries = data.flatMap(party => 
-      party.candidates
-        .filter(c => c.position === 'Secretary')
-        .map(c => ({
-          name: c.name,
-          partyName: party.partyName,
-          partyColor: party.color,
-          votes: c.votes,
-        }))
-    );
+    // Get candidates by position
+    const presidents = getAllCandidatesByPosition('PRESIDENT');
+    const secretaries = getAllCandidatesByPosition('SECRETARY');
+    const treasurers = getAllCandidatesByPosition('TREASURER');
     
-    // Get all treasurer candidates
-    const treasurers = data.flatMap(party => 
-      party.candidates
-        .filter(c => c.position === 'Treasurer')
-        .map(c => ({
-          name: c.name,
-          partyName: party.partyName,
-          partyColor: party.color,
-          votes: c.votes,
-        }))
-    );
-    
-    // Get leading candidates by sorting by votes
+    // Get leading candidate for each position
     const leadingPresident = presidents.length > 0 ? 
-      [...presidents].sort((a, b) => b.votes - a.votes)[0] : 
-      { name: 'N/A', partyName: 'N/A', partyColor: 'gray', votes: 0 };
+      [...presidents].sort((a, b) => b.votes - a.votes)[0] : defaultCandidate;
       
     const leadingSecretary = secretaries.length > 0 ? 
-      [...secretaries].sort((a, b) => b.votes - a.votes)[0] : 
-      { name: 'N/A', partyName: 'N/A', partyColor: 'gray', votes: 0 };
+      [...secretaries].sort((a, b) => b.votes - a.votes)[0] : defaultCandidate;
       
     const leadingTreasurer = treasurers.length > 0 ? 
-      [...treasurers].sort((a, b) => b.votes - a.votes)[0] : 
-      { name: 'N/A', partyName: 'N/A', partyColor: 'gray', votes: 0 };
+      [...treasurers].sort((a, b) => b.votes - a.votes)[0] : defaultCandidate;
     
     return {
       president: leadingPresident,
@@ -387,15 +529,14 @@ const Index = () => {
     };
   };
 
-  // Prepare candidate comparison data for current view
+  // Get candidate comparison data for current view
   const getCandidateComparison = () => {
     let data = [];
     
     if (activeView === 'total') {
       data = totalData;
     } else {
-      const boothId = activeView;
-      data = boothData[boothId]?.data || [];
+      data = boothData[activeView]?.data || [];
     }
     
     if (!data || data.length === 0) {
@@ -406,61 +547,49 @@ const Index = () => {
       };
     }
     
-    // Get all president candidates with rank
-    const presidents = data.flatMap(party => 
-      party.candidates
-        .filter(c => c.position === 'President')
-        .map(c => ({
-          name: c.name,
-          partyName: party.partyName,
-          partyColor: party.color,
-          votes: c.votes,
-          rank: 0,
-        }))
-    ).sort((a, b) => b.votes - a.votes)
-      .map((candidate, index) => ({...candidate, rank: index + 1}));
-    
-    // Get all secretary candidates with rank
-    const secretaries = data.flatMap(party => 
-      party.candidates
-        .filter(c => c.position === 'Secretary')
-        .map(c => ({
-          name: c.name,
-          partyName: party.partyName,
-          partyColor: party.color,
-          votes: c.votes,
-          rank: 0,
-        }))
-    ).sort((a, b) => b.votes - a.votes)
-      .map((candidate, index) => ({...candidate, rank: index + 1}));
-    
-    // Get all treasurer candidates with rank
-    const treasurers = data.flatMap(party => 
-      party.candidates
-        .filter(c => c.position === 'Treasurer')
-        .map(c => ({
-          name: c.name,
-          partyName: party.partyName,
-          partyColor: party.color,
-          votes: c.votes,
-          rank: 0,
-        }))
-    ).sort((a, b) => b.votes - a.votes)
-      .map((candidate, index) => ({...candidate, rank: index + 1}));
+    // Process candidates for a position
+    const processPositionCandidates = (position) => {
+      const candidates = data.flatMap(party => 
+        (party.candidates || [])
+          .filter(c => c.position === position)
+          .map(c => ({
+            name: c.name,
+            partyName: party.partyName,
+            partyColor: party.color,
+            partyId: party.partyId,
+            votes: c.votes || 0,
+            booth1Votes: c.booth1Votes || 0,
+            booth2Votes: c.booth2Votes || 0,
+            photo: c.photo || `https://api.dicebear.com/7.x/initials/svg?seed=${c.name}`,
+            rank: 0,
+          }))
+      );
+      
+      // Sort and assign rank
+      return candidates
+        .sort((a, b) => b.votes - a.votes)
+        .map((candidate, index) => ({
+          ...candidate, 
+          rank: index + 1,
+          isLeading: index === 0 && candidate.votes > 0
+        }));
+    };
     
     return {
-      presidents,
-      secretaries,
-      treasurers
+      presidents: processPositionCandidates('PRESIDENT'),
+      secretaries: processPositionCandidates('SECRETARY'),
+      treasurers: processPositionCandidates('TREASURER')
     };
   };
 
   // Switch between views (total or specific booth)
   const handleViewSwitch = () => {
-    // Get all booth IDs
-    const boothIds = Object.keys(boothData);
+    // Get active booth IDs (only COUNTING or COMPLETED)
+    const activeBoothIds = Object.keys(boothData).filter(id => 
+      boothData[id].status === 'COUNTING' || boothData[id].status === 'COMPLETED'
+    );
     
-    if (boothIds.length === 0) {
+    if (activeBoothIds.length === 0) {
       setActiveView('total');
       return;
     }
@@ -470,32 +599,33 @@ const Index = () => {
     if (activeView === 'total') {
       currentIndex = -1;
     } else {
-      currentIndex = boothIds.indexOf(activeView);
+      currentIndex = activeBoothIds.indexOf(activeView);
     }
     
     // Move to next view
-    const nextIndex = (currentIndex + 1) % (boothIds.length + 1);
+    const nextIndex = (currentIndex + 1) % (activeBoothIds.length + 1);
     
-    if (nextIndex === boothIds.length) {
+    if (nextIndex === activeBoothIds.length) {
       setActiveView('total');
     } else {
-      setActiveView(boothIds[nextIndex]);
+      setActiveView(activeBoothIds[nextIndex]);
     }
   };
 
-  // Get active view stats
+  // Get statistics for the active view
   const getActiveViewStats = () => {
     let viewTotalVotes = 0;
     let viewPendingVotes = 0;
     let viewCountingPercentage = 0;
     let viewData = [];
-    let viewName = 'Total Results';
+    let viewName = 'Total';
+    let boothNumber = null;
     
     if (activeView === 'total') {
       viewData = totalData;
-      viewTotalVotes = totalVotes;
-      viewPendingVotes = pendingVotes;
-      viewCountingPercentage = countingPercentage;
+      viewTotalVotes = totalVotes || 0;
+      viewPendingVotes = pendingVotes || 0;
+      viewCountingPercentage = countingPercentage || 0;
     } else {
       const boothId = activeView;
       const booth = boothData[boothId];
@@ -503,19 +633,19 @@ const Index = () => {
       if (booth) {
         viewData = booth.data || [];
         viewName = booth.name || `Booth ${boothId}`;
+        boothNumber = booth.boothNumber || null;
         
         // Calculate booth-specific stats
-        viewTotalVotes = booth.data?.reduce((sum, party) => 
-          sum + party.candidates.reduce((sum, candidate) => sum + candidate.votes, 0), 0) || 0;
+        viewTotalVotes = booth.totalVotesCounted || 0;
           
         // If we have expected votes per booth
         if (booth.expectedVotes) {
           viewPendingVotes = Math.max(0, booth.expectedVotes - viewTotalVotes);
           viewCountingPercentage = booth.expectedVotes > 0 ? 
-            Math.round((viewTotalVotes / booth.expectedVotes) * 100) : 100;
+            Math.round((viewTotalVotes / booth.expectedVotes) * 100) : 0;
         } else {
           // Fallback to overall stats
-          viewPendingVotes = booth.status === 'COMPLETED' ? 0 : Math.floor(pendingVotes / Object.keys(boothData).length);
+          viewPendingVotes = booth.status === 'COMPLETED' ? 0 : pendingVotes;
           viewCountingPercentage = booth.status === 'COMPLETED' ? 100 : countingPercentage;
         }
       }
@@ -523,6 +653,7 @@ const Index = () => {
     
     return {
       boothName: viewName,
+      boothNumber: boothNumber,
       data: viewData,
       totalVotes: viewTotalVotes,
       pendingVotes: viewPendingVotes,
@@ -530,11 +661,12 @@ const Index = () => {
     };
   };
 
-  // Get data for current view
+  // Get all data for current view
   const activeViewStats = getActiveViewStats();
   const leadingCandidates = getLeadingCandidates();
   const candidateComparison = getCandidateComparison();
 
+  // Loading state
   if (!isConnected) {
     return (
       <div className="h-screen flex flex-col">
@@ -567,11 +699,12 @@ const Index = () => {
 
   return (
     <div className="h-screen overflow-hidden bg-gray-100 flex flex-col">
-      <Header electionName={electionData.name} />
+      <Header electionName={electionData.name} electionImg={electionData.logo} />
       
       <main className="flex-1 overflow-hidden p-3">
         <BoothView
           boothName={activeViewStats.boothName}
+          boothNumber={activeViewStats.boothNumber}
           partyData={activeViewStats.data}
           leadingCandidates={leadingCandidates}
           totalVotes={activeViewStats.totalVotes}
@@ -583,7 +716,6 @@ const Index = () => {
         />
       </main>
       
-      {/* Breaking News Ticker */}
       <NewsTicker messages={newsMessages} />
     </div>
   );

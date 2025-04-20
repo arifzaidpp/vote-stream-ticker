@@ -161,10 +161,19 @@ export class CountingService {
       // Calculate total votes in this round
       const totalVotes = dto.results.reduce((sum, result) => sum + result.voteCount, 0);
 
+      // Update the booth's total votes
+      const booth = await prisma.booth.findUnique({
+        where: { id: dto.boothId }
+      });
+      if (!booth) {
+        throw new NotFoundException(`Booth with ID ${dto.boothId} not found`);
+      }
+      const boothTotalVotes = booth.totalVotesCounted + totalVotes;
+
       // Update the booth's total votes counted
       await prisma.booth.update({
         where: { id: dto.boothId },
-        data: { totalVotesCounted: totalVotes }
+        data: { totalVotesCounted: boothTotalVotes }
       });
 
       // Update election voting completion percentage
@@ -210,7 +219,10 @@ export class CountingService {
 
   async publishCountingRound(roundId: string) {
     const countingRound = await this.prisma.countingRound.findUnique({
-      where: { id: roundId }
+      where: { id: roundId },
+      include: {
+        results: true
+      }
     });
 
     if (!countingRound) {
@@ -218,7 +230,7 @@ export class CountingService {
     }
 
     // Set the round as published
-    return this.prisma.countingRound.update({
+    const d = await this.prisma.countingRound.update({
       where: { id: roundId },
       data: { status: 'PUBLISHED' },
       include: {
@@ -229,6 +241,48 @@ export class CountingService {
         }
       }
     });
+
+    console.log('Updated counting round:', d);
+    
+
+    // Fetch all candidates and their updated vote counts
+    const candidates = await this.prisma.candidate.findMany({
+      include: {
+      results: {
+        where: { roundId: roundId }
+      }
+      }
+    });
+
+    // Map candidates to include the required fields and calculate total votes
+    const updatedCandidates = candidates.map(candidate => {
+      const totalVotes = candidate.results.reduce((sum, result) => sum + result.voteCount, candidate.votes);
+      return {
+      id: candidate.id,
+      name: candidate.name,
+      photo: candidate.photo,
+      votes: totalVotes,
+      position: candidate.position,
+      partyId: candidate.partyId
+      };
+    });
+
+    // Update the totalVotes for each candidate in the database
+    const updatePromises = updatedCandidates.map(candidate =>
+      this.prisma.candidate.update({
+      where: { id: candidate.id },
+      data: { votes: candidate.votes }
+      })
+    );
+
+    await Promise.all(updatePromises);
+
+    return {
+      updatedCandidates,
+      roundId: countingRound.id,
+      status: countingRound.status,
+      results: countingRound.results
+    };
   }
 
   async startBoothCounting(boothId: string) {

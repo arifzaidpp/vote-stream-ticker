@@ -33,6 +33,9 @@ export class SuccessResponse {
 
   @Field({ nullable: true })
   message?: string;
+
+  @Field(() => String, { nullable: true })
+  id?: string;
 }
 
 // A response containing just a count

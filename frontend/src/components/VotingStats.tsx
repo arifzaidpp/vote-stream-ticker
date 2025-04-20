@@ -60,7 +60,7 @@ const VotingStats: React.FC<VotingStatsProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 h-[calc(100%-4rem)]">
+      <div className="grid grid-cols-3 gap-4 h-[calc(100%-3rem)]">
         {/* Total Votes Card */}
         <motion.div 
           className="bg-blue-50 rounded-lg p-3"

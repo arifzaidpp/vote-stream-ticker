@@ -170,6 +170,7 @@ input SortInput {
 }
 
 type SuccessResponse {
+  id: String
   message: String
   success: Boolean!
 }
@@ -246,6 +247,7 @@ input VerifyEmailDto {
 }
 
 type VerifyEmailResponse {
+  id: String
   message: String
   success: Boolean!
   user: User!

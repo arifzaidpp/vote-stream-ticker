@@ -434,6 +434,7 @@ export class ElectionService {
     return {
       success: true,
       message: 'Access code is valid',
+      id: election.id,
     };
   }
 

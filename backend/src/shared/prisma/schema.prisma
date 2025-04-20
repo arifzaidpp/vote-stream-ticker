@@ -149,6 +149,7 @@ model Candidate {
   id         String     @id @default(uuid()) @map("id")
   name       String     @map("name")
   photo      String?    @map("photo")
+  votes     Int       @default(0) @map("votes")
   position   CandidatePosition @map("position")
   party      Party      @relation(fields: [partyId], references: [id])
   partyId    String     @map("party_id")

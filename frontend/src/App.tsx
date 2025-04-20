@@ -14,6 +14,7 @@ import { ApolloClient, InMemoryCache, ApolloProvider, from, HttpLink } from "@ap
 import { onError } from "@apollo/client/link/error";
 import { useEffect, useState } from "react";
 import VerifyEmail from "./pages/VerifyEmail";
+import { AccessPage } from "./pages/AccessPage";
 
 // Initialize Apollo Client
 if (!import.meta.env.VITE_GRAPHQL_API_URL) {
@@ -153,7 +154,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             {/* Public routes */}
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<AccessPage />} />
+            <Route path="/election/:id" element={<Index />} />
             
             {/* Auth pages with redirect for logged-in users */}
             <Route element={<AuthRedirect />}>
@@ -177,7 +179,8 @@ const App = () => (
             {/* Protected user routes */}
             <Route element={<ProtectedRoute allowedRoles={["USER", "ADMIN"]} />}>
               {/* Placeholder for dashboard route */}
-              <Route path="/dashboard" element={<div>Dashboard Page</div>} />
+              {/* <Route path="/election/:id" element={<Index />} /> */}
+              <Route path="/dashboard" element={<Index />} />
             </Route>
 
             {/* Catch-all route for 404 */}

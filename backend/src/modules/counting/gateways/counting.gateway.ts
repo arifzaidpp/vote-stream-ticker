@@ -93,18 +93,21 @@ import {
       @MessageBody() data: { roundId: string, electionId: string }
     ) {
       try {
+        console.log('data', data);
+        
         // Publish the counting round
         const updatedRound = await this.countingService.publishCountingRound(data.roundId);
         
         // Broadcast the published round to all clients in the election room
         this.server.to(`election_${data.electionId}`).emit('roundPublished', {
           updatedAt: new Date(),
-          roundId: updatedRound.id,
+          roundId: updatedRound.roundId,
           status: updatedRound.status,
-          results: updatedRound.results
+          results: updatedRound.results,
+          data: updatedRound.updatedCandidates,
         });
         
-        return { success: true, round: updatedRound };
+        return { success: true, round: updatedRound, data: updatedRound.updatedCandidates };
       } catch (error) {
         client.emit('countingError', { message: error.message });
         return { success: false, error: error.message };

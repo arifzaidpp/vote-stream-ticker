@@ -112,5 +112,5 @@ export const getViewData = (activeView: string, totalData: any[], booth1Data: an
 export const getActiveViewTitle = (activeView: string) => {
   if (activeView === 'booth1') return 'Booth 1';
   if (activeView === 'booth2') return 'Booth 2';
-  return 'Total Results';
+  return 'Total';
 };
