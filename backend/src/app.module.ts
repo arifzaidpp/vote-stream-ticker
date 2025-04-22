@@ -118,10 +118,7 @@ import { CountingModule } from './modules/counting/counting.module';
           configService.get('graphql.subscriptions') === true;
 
         return {
-          autoSchemaFile: join(
-            process.cwd(),
-            configService.get('graphql.schemaDestination') as string,
-          ),
+          autoSchemaFile: 'schema.gql',
           sortSchema: true,
 
           // Updated playground configuration
