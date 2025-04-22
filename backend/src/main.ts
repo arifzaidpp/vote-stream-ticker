@@ -66,7 +66,7 @@ async function bootstrap() {
 
   // Enable CORS for all domains
   app.enableCors({
-    origin: true, // Or specify your frontend URL like 'http://localhost:5173'
+    origin: "*", // Or specify your frontend URL like 'http://localhost:5173'
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
     allowedHeaders: 'Content-Type, Accept, Authorization',
