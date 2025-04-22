@@ -12,7 +12,8 @@
   "scripts": {
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
-    "build": "npm run prisma:generate && nest build",
+    "generate:schema": "ts-node generate-schema.ts",
+  "build": "npm run generate:schema && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
