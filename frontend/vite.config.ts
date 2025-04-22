@@ -10,7 +10,7 @@ export default defineConfig({
     port: 8080,
     proxy:{
       '/api':{
-        target:"https://vote-stream-ticker.vercel.app"
+        target:"https://vote-stream-ticker.onrender.com"
       }
     }
   },

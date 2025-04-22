@@ -251,7 +251,7 @@ const CountingPanel = () => {
     }
 
     // Create socket connection with auth token
-    const apiUrl = import.meta.env.VITE_API_URL || 'https://vote-stream-ticker.vercel.app';
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://vote-stream-ticker.onrender.com';
     const socketInstance = io(apiUrl, {
       extraHeaders: {
         Authorization: `Bearer ${token}`,
