@@ -232,6 +232,9 @@ const CountingPanel = () => {
   const [newRoundEntries, setNewRoundEntries] = useState<VoteEntry[]>([]);
   const [voteValue, setVoteValue] = useState(1);
 
+  const [openBooths, setOpenBooths] = useState<string[]>([]);
+  const [openRounds, setOpenRounds] = useState<string[]>([]);
+
   // Initialize Socket.IO connection
   useEffect(() => {
     // Get token from localStorage
@@ -875,7 +878,12 @@ const CountingPanel = () => {
           </Card>
         )}
 
-        <Accordion type="single" collapsible className="w-full space-y-4">
+        <Accordion
+          type="multiple"
+          value={openBooths}
+          onValueChange={setOpenBooths}
+          className="w-full space-y-4"
+        >
           {booths.map((booth) => (
             <AccordionItem
               key={booth.id}
@@ -949,7 +957,6 @@ const CountingPanel = () => {
                       </>
                     )}
                   </div>
-
                   {/* Rounds List */}
                   <div className="space-y-4">
                     {(!booth.countingRounds || booth.countingRounds.length === 0) && (
@@ -958,93 +965,124 @@ const CountingPanel = () => {
                       </div>
                     )}
 
-                    {booth.countingRounds && booth.countingRounds.map((round) => (
-                      <Card key={round.id} className={`${round.status === 'DRAFT' ? 'border-amber-300' : 'border-green-200'}`}>
-                        <CardHeader className="flex-row items-center justify-between bg-gray-50 py-3">
-                          <div>
-                            <h4 className="font-medium">Round {round.roundNumber}</h4>
-                            <p className="text-sm text-gray-500">
-                              {round.status === 'DRAFT' ? 'Draft - Not Published' : 'Published'}
-                              {round.countedAt ? ` - ${formatDate(round.countedAt)}` : ''}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                              Vote Value: {round.voteValue}
-                            </Badge>
-                            {round.status === 'DRAFT' ? (
-                              <>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleEditRound(booth.id, round.id)}
-                                  disabled={!isConnected}
-                                >
-                                  <Edit2 className="h-4 w-4 mr-1" />
-                                  Edit
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={() => handlePublishRound(round.id, electionId)}
-                                  disabled={!isConnected}
-                                >
-                                  <Lock className="h-4 w-4 mr-1" />
-                                  Publish
-                                </Button>
-                              </>
-                            ) : null}
-                          </div>
-                        </CardHeader>
-                        <CardContent className="py-4">
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-sm font-medium text-gray-500 px-2 py-1">
-                              <span>Candidate</span>
-                              <div className="flex gap-12">
-                                <span>Votes</span>
-                                <span>Calculated</span>
-                              </div>
-                            </div>
-                            {round.results.map((result) => (
-                              <div
-                                key={result.candidateId}
-                                className="flex justify-between items-center px-2 py-2 hover:bg-gray-50 rounded"
-                              >
-                                <div>
-                                  <p className="font-medium">{result.candidate?.name || 'Unknown Candidate'}</p>
-                                  <p className="text-xs text-gray-500">
-                                    {result.candidate?.position || 'Unknown Position'} •
-                                    {result.candidate?.partyId
-                                      ? getPartyName(result.candidate.partyId)
-                                      : 'Independent'}
+                    <Accordion
+                      type="multiple"
+                      value={openRounds}
+                      onValueChange={setOpenRounds}
+                      className="space-y-4"
+                    >
+                      {booth.countingRounds &&
+                        booth.countingRounds.map((round) => (
+                          <AccordionItem
+                            key={round.id}
+                            value={round.id}
+                            className="border rounded-lg overflow-hidden"
+                          >
+                            <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                              <CardHeader className="w-full flex flex-row justify-between items-center bg-gray-50 p-0">
+                                {/* Left side - Title and Date */}
+                                <div className="px-4 py-3 flex items-center">
+                                  <div className="flex-1">
+                                  <h4 className="font-medium">Round {round.roundNumber}</h4>
+                                  <p className="text-sm text-gray-500">
+                                    {round.status === 'DRAFT' ? 'Draft - Not Published' : 'Published'}
+                                    {round.countedAt ? ` - ${formatDate(round.countedAt)}` : ''}
                                   </p>
+                                  </div>
                                 </div>
-                                <div className="flex gap-12 items-center">
-                                  <span className="text-right w-8">{result.voteCount}</span>
-                                  <span className="text-right w-16 font-medium">
-                                    {result.calculatedVotes !== undefined
-                                      ? result.calculatedVotes
-                                      : Number((result.voteCount * round.voteValue).toFixed(2))}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
 
-                          <div className="mt-4 pt-4 border-t flex justify-between items-center">
-                            <div>
-                              <span className="text-sm text-gray-500">Total Votes:</span>
-                              <span className="ml-2 font-medium">{calculateTotalVotes(round.results)}</span>
-                            </div>
-                            {round.status === 'DRAFT' && (
-                              <div className="flex items-center text-amber-600">
-                                <AlertTriangle className="h-4 w-4 mr-1" />
-                                <span className="text-sm">Draft Round - Publish to finalize</span>
-                              </div>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                                {/* Right side - Vote Value + Buttons */}
+                                <div className="flex items-center gap-2 pr-4">
+                                  <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                                    Vote Value: {round.voteValue}
+                                  </Badge>
+                                  {round.status === 'DRAFT' ? (
+                                    <>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleEditRound(booth.id, round.id);
+                                        }}
+                                        disabled={!isConnected}
+                                      >
+                                        <Edit2 className="h-4 w-4 mr-1" />
+                                        Edit
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handlePublishRound(round.id, electionId);
+                                        }}
+                                        disabled={!isConnected}
+                                      >
+                                        <Lock className="h-4 w-4 mr-1" />
+                                        Publish
+                                      </Button>
+                                    </>
+                                  ) : null}
+                                </div>
+                              </CardHeader>
+                            </AccordionTrigger>
+
+                            <AccordionContent>
+                              <CardContent className="py-4">
+                                <div className="space-y-1">
+                                  <div className="flex justify-between text-sm font-medium text-gray-500 px-2 py-1">
+                                    <span>Candidate</span>
+                                    <div className="flex gap-12">
+                                      <span>Votes</span>
+                                      <span>Calculated</span>
+                                    </div>
+                                  </div>
+                                  {round.results.map((result) => (
+                                    <div
+                                      key={result.candidateId}
+                                      className="flex justify-between items-center px-2 py-2 hover:bg-gray-50 rounded"
+                                    >
+                                      <div>
+                                        <p className="font-medium">{result.candidate?.name || 'Unknown Candidate'}</p>
+                                        <p className="text-xs text-gray-500">
+                                          {result.candidate?.position || 'Unknown Position'} •
+                                          {result.candidate?.partyId
+                                            ? getPartyName(result.candidate.partyId)
+                                            : 'Independent'}
+                                        </p>
+                                      </div>
+                                      <div className="flex gap-12 items-center">
+                                        <span className="text-right w-8">{result.voteCount}</span>
+                                        <span className="text-right w-16 font-medium">
+                                          {result.calculatedVotes !== undefined
+                                            ? result.calculatedVotes
+                                            : Number((result.voteCount * round.voteValue).toFixed(2))}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                <div className="mt-4 pt-4 border-t flex justify-between items-center">
+                                  <div>
+                                    <span className="text-sm text-gray-500">Total Votes:</span>
+                                    <span className="ml-2 font-medium">
+                                      {calculateTotalVotes(round.results)}
+                                    </span>
+                                  </div>
+                                  {round.status === 'DRAFT' && (
+                                    <div className="flex items-center text-amber-600">
+                                      <AlertTriangle className="h-4 w-4 mr-1" />
+                                      <span className="text-sm">Draft Round - Publish to finalize</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </CardContent>
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                    </Accordion>
+
                   </div>
                 </div>
               </AccordionContent>
