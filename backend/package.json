@@ -13,7 +13,7 @@
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "generate:schema": "ts-node generate-schema.ts",
-    "build": "tsc",
+    "build": "npm install && tsc",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
