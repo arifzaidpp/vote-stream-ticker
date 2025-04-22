@@ -10,7 +10,8 @@
     "seed": "ts-node -r tsconfig-paths/register src/shared/prisma/seed.ts"
   },
   "scripts": {
-    "build": "nest build",
+    "prisma:generate": "prisma generate",
+    "build": "npm run prisma:generate && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -22,7 +23,6 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "docs": "typedoc"
