@@ -1,5 +1,5 @@
 import { Field, ObjectType } from "@nestjs/graphql";
-import { SuccessResponse } from "src/common/models/pagination.model";
+import { SuccessResponse } from "../../../common/models/pagination.model";
 import { User } from "../models/user.model";
 
 @ObjectType()

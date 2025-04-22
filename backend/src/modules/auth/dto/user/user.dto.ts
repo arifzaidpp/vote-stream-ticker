@@ -1,5 +1,5 @@
 import { Field, InputType, ObjectType } from "@nestjs/graphql";
-import { Paginated } from "src/common/models/pagination.model";
+import { Paginated } from "../../../../common/models/pagination.model";
 import { User } from "../../models/user.model";
 import { IsBoolean, IsOptional } from "class-validator";
 

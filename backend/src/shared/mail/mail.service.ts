@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
-import { PendingUser } from 'src/modules/auth/models/pending-user.model';
-import { User } from 'src/modules/auth/models/user.model';
+import { PendingUser } from '../../modules/auth/models/pending-user.model';
+import { User } from '../../modules/auth/models/user.model';
 
 @Injectable()
 export class MailService {

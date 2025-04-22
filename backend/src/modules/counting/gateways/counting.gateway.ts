@@ -1,4 +1,4 @@
-// src/counting/gateways/counting.gateway.ts
+// ../../../counting/gateways/counting.gateway.ts
 import {
     WebSocketGateway,
     SubscribeMessage,

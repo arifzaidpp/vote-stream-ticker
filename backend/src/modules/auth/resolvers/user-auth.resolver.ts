@@ -2,18 +2,18 @@ import { Resolver, Mutation, Args, Query, Context } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { UserAuthService } from '../services/user-auth.service';
-import { SuccessResponse } from 'src/common/models/pagination.model';
+import { SuccessResponse } from '../../../common/models/pagination.model';
 import { CreateUserDto } from '../dto/user/create-user.input';
 import { LoginDto } from '../dto/user/login.input';
 import { User } from '../models/user.model';
 import { LoginResponse } from '../dto/user/login.response';
-import { GqlAuthGuard } from 'src/common/guards/gql-auth.guard';
+import { GqlAuthGuard } from '../../../common/guards/gql-auth.guard';
 import { VerifyEmailResponse } from '../dto/verify-email.response';
 import { VerifyEmailDto } from '../dto/verify-email.input';
 import { ResetPasswordDto } from '../dto/reset-password.input';
 import { ForgotPasswordDto } from '../dto/forgot-password.input';
 import { ChangePasswordInput } from '../dto/change-password.input';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { SetPasswordInput } from '../dto/set-password.input';
 
 @Resolver()

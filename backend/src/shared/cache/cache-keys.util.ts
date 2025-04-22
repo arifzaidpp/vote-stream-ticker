@@ -1,4 +1,4 @@
-import { UserFilter } from 'src/modules/auth/dto/user/user.dto';
+import { UserFilter } from '../../modules/auth/dto/user/user.dto';
 
 /**
  * Generate cache keys for various entities

@@ -1,4 +1,4 @@
-// src/counting/dto/submit-vote-count.dto.ts
+// ../../../counting/dto/submit-vote-count.dto.ts
 import { IsString, IsArray, ValidateNested, IsNumber, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 

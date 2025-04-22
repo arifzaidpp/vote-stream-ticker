@@ -3,8 +3,8 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-custom';
 import { Request } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { CacheService } from 'src/shared/cache/cache.service';
-import { cacheKeys } from 'src/shared/cache/cache-keys.util';
+import { CacheService } from '../../../shared/cache/cache.service';
+import { cacheKeys } from '../../../shared/cache/cache-keys.util';
 
 @Injectable()
 export class SessionStrategy extends PassportStrategy(Strategy, 'session') {

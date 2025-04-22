@@ -4,7 +4,7 @@ import { CountingController } from './counting.controller';
 import { CountingGateway } from './gateways/counting.gateway';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { PrismaModule } from 'src/shared/prisma/prisma.module';
+import { PrismaModule } from '../../shared/prisma/prisma.module';
 
 @Module({
   imports: [

@@ -1,16 +1,16 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { PaginationWithSearchInput } from 'src/common/dto/pagination.dto';
-import { SortDirection, SortInput } from 'src/common/dto/sort.dto';
-import { CacheService } from 'src/shared/cache/cache.service';
-import { PrismaService } from 'src/shared/prisma/prisma.service';
+import { PaginationWithSearchInput } from '../../../common/dto/pagination.dto';
+import { SortDirection, SortInput } from '../../../common/dto/sort.dto';
+import { CacheService } from '../../../shared/cache/cache.service';
+import { PrismaService } from '../../../shared/prisma/prisma.service';
 import { UserFilter, UserPaginated } from '../dto/user/user.dto';
-import { cacheKeys } from 'src/shared/cache/cache-keys.util';
-import { transformDates } from 'src/common/utils/date.utils';
-import { generateWhereClause } from 'src/common/utils/where-clause.utils';
-import { withErrorHandling } from 'src/common/utils/application-error.utils';
+import { cacheKeys } from '../../../shared/cache/cache-keys.util';
+import { transformDates } from '../../../common/utils/date.utils';
+import { generateWhereClause } from '../../../common/utils/where-clause.utils';
+import { withErrorHandling } from '../../../common/utils/application-error.utils';
 import { User } from '../models/user.model';
 import { UpdateProfileInput } from '../dto/user/user-profile.input';
-import { SuccessResponse } from 'src/common/models/pagination.model';
+import { SuccessResponse } from '../../../common/models/pagination.model';
 
 /**
  * Service to handle User CRUD operations

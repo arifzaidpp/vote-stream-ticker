@@ -1,15 +1,15 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ElectionResponseDto } from './dto/election-response.dto';
-import { PrismaService } from 'src/shared/prisma/prisma.service';
+import { PrismaService } from '../../shared/prisma/prisma.service';
 import { CreateElectionDto } from './dto/election/create-election.input';
 import { CandidatePosition } from './enums/candidate-position.enum';
 import { UpdateElectionDto } from './dto/election/update-election.input';
-import { CacheService, CacheKeys } from 'src/shared/cache/cache.service';
-import { PaginationWithSearchInput } from 'src/common/dto/pagination.dto';
-import { SortDirection, SortInput } from 'src/common/dto/sort.dto';
-import { SuccessResponse } from 'src/common/models/pagination.model';
-import { withErrorHandling } from 'src/common/utils/application-error.utils';
-import { generateWhereClause } from 'src/common/utils/where-clause.utils';
+import { CacheService, CacheKeys } from '../../shared/cache/cache.service';
+import { PaginationWithSearchInput } from '../../common/dto/pagination.dto';
+import { SortDirection, SortInput } from '../../common/dto/sort.dto';
+import { SuccessResponse } from '../../common/models/pagination.model';
+import { withErrorHandling } from '../../common/utils/application-error.utils';
+import { generateWhereClause } from '../../common/utils/where-clause.utils';
 
 export interface ElectionPaginated {
   items: ElectionResponseDto[];

@@ -3,8 +3,8 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@prisma/client';
-import { CacheService } from 'src/shared/cache/cache.service';
-import { cacheKeys } from 'src/shared/cache/cache-keys.util';
+import { CacheService } from '../../../shared/cache/cache.service';
+import { cacheKeys } from '../../../shared/cache/cache-keys.util';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {

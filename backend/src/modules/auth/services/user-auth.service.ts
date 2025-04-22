@@ -18,25 +18,25 @@ import { ChangePasswordInput } from '../dto/change-password.input';
 import { ResetPasswordDto } from '../dto/reset-password.input';
 import { ForgotPasswordDto } from '../dto/forgot-password.input';
 import { VerifyEmailDto } from '../dto/verify-email.input';
-import { PrismaService } from 'src/shared/prisma/prisma.service';
-import { CacheService } from 'src/shared/cache/cache.service';
-import { MailService } from 'src/shared/mail/mail.service';
-import { SuccessResponse } from 'src/common/models/pagination.model';
-import { withErrorHandling } from 'src/common/utils/application-error.utils';
-import { cacheKeys } from 'src/shared/cache/cache-keys.util';
-import { hashPassword, verifyPassword } from 'src/common/utils/password.util';
+import { PrismaService } from '../../../shared/prisma/prisma.service';
+import { CacheService } from '../../../shared/cache/cache.service';
+import { MailService } from '../../../shared/mail/mail.service';
+import { SuccessResponse } from '../../../common/models/pagination.model';
+import { withErrorHandling } from '../../../common/utils/application-error.utils';
+import { cacheKeys } from '../../../shared/cache/cache-keys.util';
+import { hashPassword, verifyPassword } from '../../../common/utils/password.util';
 import {
   generateEmailVerificationToken,
   generatePasswordResetToken,
   validateJwtToken,
-} from 'src/common/utils/token.util';
+} from '../../../common/utils/token.util';
 import {
   createUserSession,
   getUserSessionsCount,
   invalidateUserSession,
-} from 'src/common/utils/session.util';
+} from '../../../common/utils/session.util';
 import { PrismaClient, User } from '@prisma/client';
-import { transformDates } from 'src/common/utils/date.utils';
+import { transformDates } from '../../../common/utils/date.utils';
 import { JwtService } from '@nestjs/jwt';
 
 /**

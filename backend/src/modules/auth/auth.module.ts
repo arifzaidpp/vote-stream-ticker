@@ -10,9 +10,9 @@ import { UserService } from './services/user.service';
 // Strategies
 import { GoogleStrategy } from './strategies/google.strategy';
 import { SessionStrategy } from './strategies/session.strategy';
-import { CacheModule } from 'src/shared/cache/cache.module';
+import { CacheModule } from '../../shared/cache/cache.module';
 import { UserAuthService } from './services/user-auth.service';
-import { MailModule } from 'src/shared/mail/mail.module';
+import { MailModule } from '../../shared/mail/mail.module';
 
 // Resolvers
 import { UserAuthResolver } from './resolvers/user-auth.resolver';

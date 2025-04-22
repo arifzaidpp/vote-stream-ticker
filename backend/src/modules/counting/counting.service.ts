@@ -1,8 +1,8 @@
-// src/counting/counting.service.ts
+// ../../../counting/counting.service.ts
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 
 import { SubmitVoteCountDto } from './dto/submit-vote-count.dto';
-import { PrismaService } from 'src/shared/prisma/prisma.service';
+import { PrismaService } from '../../shared/prisma/prisma.service';
 import { log } from 'console';
 
 @Injectable()

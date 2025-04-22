@@ -1,4 +1,4 @@
-// src/election/election.controller.ts
+// ../../../election/election.controller.ts
 import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { ElectionService } from './election.service';
 import { ElectionResponseDto } from './dto/election-response.dto';

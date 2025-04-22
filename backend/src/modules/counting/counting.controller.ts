@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Post, Body, UseGuards } from '@nestjs/common';
 import { CountingService } from './counting.service';
 import { SubmitVoteCountDto } from './dto/submit-vote-count.dto';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
 @Controller('counting')
 export class CountingController {

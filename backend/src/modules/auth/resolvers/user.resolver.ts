@@ -2,13 +2,13 @@ import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { User } from '../models/user.model';
 import { UserService } from '../services/user.service';
-import { GqlAuthGuard } from 'src/common/guards/gql-auth.guard';
+import { GqlAuthGuard } from '../../../common/guards/gql-auth.guard';
 import { UserPaginated } from '../dto/user/user.dto';
-import { RequirePermissions } from 'src/common/decorators/permission.decorator';
-import { PERMISSIONS } from 'src/common/constants/permission.constants';
-import { PaginationInput } from 'src/common/dto/pagination.dto';
+import { RequirePermissions } from '../../../common/decorators/permission.decorator';
+import { PERMISSIONS } from '../../../common/constants/permission.constants';
+import { PaginationInput } from '../../../common/dto/pagination.dto';
 import { UpdateProfileInput } from '../dto/user/user-profile.input';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 
 @Resolver(() => User)
 export class UserResolver {
