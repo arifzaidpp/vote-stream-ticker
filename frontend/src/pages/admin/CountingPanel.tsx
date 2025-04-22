@@ -118,7 +118,7 @@ const RoundDialog = React.memo(({
 }: RoundDialogProps) => {
   // Check if parties is valid, if not, use mockParties for testing
   const validParties = Array.isArray(parties) && parties.length > 0 ? parties : mockParties;
-  
+
   // Group candidates by party for display
   const groupedCandidates = useMemo(() => {
     return validParties.reduce((acc: Record<string, Candidate[]>, party: Party) => {
@@ -162,45 +162,45 @@ const RoundDialog = React.memo(({
         </div>
 
         <div className="max-h-[60vh] overflow-y-auto">
-  {Object.entries(groupedCandidates).map(([party, candidates]) => (
-    <div key={party} className="space-y-4">
-      <h3 className="font-semibold text-lg border-b pb-2">{party}</h3>
-      <div className="space-y-3">
-        {candidates.map((candidate) => {
-          const entry = entries.find(e => e.candidateId === candidate.id);
-          const votes = entry?.votes || 0;
-          const calculatedVotes = entry?.calculatedVotes !== undefined 
-            ? entry.calculatedVotes 
-            : Number((votes * voteValue).toFixed(2));
+          {Object.entries(groupedCandidates).map(([party, candidates]) => (
+            <div key={party} className="space-y-4">
+              <h3 className="font-semibold text-lg border-b pb-2">{party}</h3>
+              <div className="space-y-3">
+                {candidates.map((candidate) => {
+                  const entry = entries.find(e => e.candidateId === candidate.id);
+                  const votes = entry?.votes || 0;
+                  const calculatedVotes = entry?.calculatedVotes !== undefined
+                    ? entry.calculatedVotes
+                    : Number((votes * voteValue).toFixed(2));
 
-          return (
-            <div key={candidate.id} className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">{candidate.name}</p>
-                <p className="text-sm text-gray-500">{candidate.position}</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="w-32">
-                  <Input
-                    type="number"
-                    min="0"
-                    value={votes}
-                    onChange={(e) => onVoteChange(candidate.id, e.target.value)}
-                    className="text-right"
-                  />
-                </div>
-                <div className="w-32 text-right">
-                  <p className="text-sm text-gray-500">Calculated Votes</p>
-                  <p className="font-medium">{calculatedVotes}</p>
-                </div>
+                  return (
+                    <div key={candidate.id} className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">{candidate.name}</p>
+                        <p className="text-sm text-gray-500">{candidate.position}</p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="w-32">
+                          <Input
+                            type="number"
+                            min="0"
+                            value={votes}
+                            onChange={(e) => onVoteChange(candidate.id, e.target.value)}
+                            className="text-right"
+                          />
+                        </div>
+                        <div className="w-32 text-right">
+                          <p className="text-sm text-gray-500">Calculated Votes</p>
+                          <p className="font-medium">{calculatedVotes}</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-          );
-        })}
-      </div>
-    </div>
-  ))}
-</div>
+          ))}
+        </div>
       </div>
 
       <DialogFooter>
@@ -236,7 +236,7 @@ const CountingPanel = () => {
   useEffect(() => {
     // Get token from localStorage
     const token = localStorage.getItem('token');
-    
+
     if (!token) {
       toast({
         title: "Authentication Error",
@@ -282,11 +282,11 @@ const CountingPanel = () => {
       // Handle initial election data
       if (data) {
         console.log('Received election data:', data);
-        
+
         if (data.booths) {
           setBooths(data.booths);
         }
-        
+
         if (data.parties) {
           setParties(data.parties);
         } else {
@@ -300,24 +300,24 @@ const CountingPanel = () => {
       // Handle updated vote count
       if (data && data.boothId && data.roundId) {
         console.log('Vote count updated:', data);
-        
+
         setBooths(prevBooths => {
           // Make a deep copy to ensure React detects the changes
           const updatedBooths = prevBooths.map(booth => {
             if (booth.id === data.boothId) {
               // Check if the round already exists in this booth
               const roundExists = booth.countingRounds.some(round => round.id === data.roundId);
-              
+
               if (roundExists) {
                 // Update existing round
                 return {
                   ...booth,
-                  countingRounds: booth.countingRounds.map(round => 
+                  countingRounds: booth.countingRounds.map(round =>
                     round.id === data.roundId
-                      ? { 
-                          ...round,
-                          results: data.results || round.results as Round['results']
-                        }
+                      ? {
+                        ...round,
+                        results: data.results || round.results as Round['results']
+                      }
                       : round
                   )
                 };
@@ -331,7 +331,7 @@ const CountingPanel = () => {
                   results: data.results || [],
                   createdAt: new Date().toISOString(),
                 };
-                
+
                 return {
                   ...booth,
                   countingRounds: [...booth.countingRounds, newRound]
@@ -340,10 +340,10 @@ const CountingPanel = () => {
             }
             return booth;
           });
-          
+
           return updatedBooths;
         });
-        
+
         const boothName = booths.find(b => b.id === data.boothId)?.boothNumber || 'selected booth';
         toast({
           title: "Vote Count Updated",
@@ -359,7 +359,7 @@ const CountingPanel = () => {
           // We don't know which booth this round belongs to, so check all booths
           const updatedBooth = { ...booth };
           const roundIndex = booth.countingRounds.findIndex(r => r.id === data.roundId);
-          
+
           if (roundIndex !== -1) {
             updatedBooth.countingRounds = [...booth.countingRounds];
             updatedBooth.countingRounds[roundIndex] = {
@@ -368,10 +368,10 @@ const CountingPanel = () => {
               results: data.results || updatedBooth.countingRounds[roundIndex].results
             };
           }
-          
+
           return updatedBooth;
         }));
-        
+
         toast({
           title: "Round Published",
           description: "A counting round has been published",
@@ -387,7 +387,7 @@ const CountingPanel = () => {
             ? { ...booth, status: 'COUNTING' }
             : booth
         ));
-        
+
         const boothName = booths.find(b => b.id === data.boothId)?.boothNumber || 'selected booth';
         toast({
           title: "Counting Started",
@@ -416,7 +416,7 @@ const CountingPanel = () => {
   useEffect(() => {
     if (isAddingRound) {
       // Get a flattened list of all candidates from all parties
-      const allCandidates = parties.flatMap(party => 
+      const allCandidates = parties.flatMap(party =>
         party.candidates.map(candidate => ({
           id: candidate.id,
           name: candidate.name,
@@ -424,11 +424,11 @@ const CountingPanel = () => {
           party: party.name,
         }))
       );
-      
+
       // If no candidates from parties, use mockCandidates as fallback
-      const candidatesToUse = allCandidates.length > 0 ? allCandidates : 
+      const candidatesToUse = allCandidates.length > 0 ? allCandidates :
         mockParties.flatMap(party => party.candidates);
-      
+
       setNewRoundEntries(candidatesToUse.map(candidate => ({
         candidateId: candidate.id,
         votes: 0,
@@ -458,15 +458,15 @@ const CountingPanel = () => {
     if (votes < 0) return;
 
     console.log("vote value:", voteValue);
-    
+
     setNewRoundEntries(prev => {
       const updatedEntries = prev.map(entry =>
         entry.candidateId === candidateId
           ? {
-              ...entry,
-              votes,
-              calculatedVotes: Number((votes * voteValue).toFixed(2))
-            }
+            ...entry,
+            votes,
+            calculatedVotes: Number((votes * voteValue).toFixed(2))
+          }
           : entry
       );
       return updatedEntries;
@@ -476,7 +476,7 @@ const CountingPanel = () => {
   const handleVoteValueChange = useCallback((value: string) => {
     const newValue = validateVoteValue(value);
     setVoteValue(newValue);
-    
+
     setNewRoundEntries(prev =>
       prev.map(entry => ({
         ...entry,
@@ -488,23 +488,23 @@ const CountingPanel = () => {
   const handleEditRound = useCallback((boothId: string, roundId: string) => {
     const booth = booths.find(b => b.id === boothId);
     const round = booth?.countingRounds.find(r => r.id === roundId);
-    
+
     if (booth && round && round.status === 'DRAFT') {
       setSelectedBoothId(boothId);
       setEditingRoundId(roundId);
       setVoteValue(round.voteValue);
-      
+
       // Map round results to vote entries
       const entries = round.results.map(result => ({
         candidateId: result.candidateId,
         votes: result.voteCount,
         calculatedVotes: result.calculatedVotes
       }));
-      
+
       // Add missing candidates with zero votes
       const allCandidateIds = new Set(parties.flatMap(p => p.candidates.map(c => c.id)));
       const existingCandidateIds = new Set(entries.map(e => e.candidateId));
-      
+
       const missingEntries = Array.from(allCandidateIds)
         .filter(id => !existingCandidateIds.has(id))
         .map(id => ({
@@ -512,7 +512,7 @@ const CountingPanel = () => {
           votes: 0,
           calculatedVotes: 0
         }));
-      
+
       setNewRoundEntries([...entries, ...missingEntries]);
       setIsEditingRound(true);
     }
@@ -520,7 +520,7 @@ const CountingPanel = () => {
 
   const handleUpdateRound = useCallback(() => {
     if (!selectedBoothId || !editingRoundId || !socket || !electionId) return;
-  
+
     if (newRoundEntries.every(entry => entry.votes === 0)) {
       toast({
         title: "Invalid Entries",
@@ -529,13 +529,13 @@ const CountingPanel = () => {
       });
       return;
     }
-  
+
     console.log('Updating round with entries:', newRoundEntries);
-    
+
     // Find the round to determine round number
     const booth = booths.find(b => b.id === selectedBoothId);
     const round = booth?.countingRounds.find(r => r.id === editingRoundId);
-    
+
     if (!round) {
       toast({
         title: "Error",
@@ -544,7 +544,7 @@ const CountingPanel = () => {
       });
       return;
     }
-  
+
     // Convert to DTO format for backend
     const roundData = {
       electionId,
@@ -557,9 +557,9 @@ const CountingPanel = () => {
         voteCount: entry.votes
       }))
     };
-  
+
     console.log('Round data to update:', roundData);
-    
+
     // Send to server via WebSocket
     socket.emit('submitVoteCount', roundData, (response: any) => {
       if (response && response.success) {
@@ -569,13 +569,13 @@ const CountingPanel = () => {
             if (booth.id === selectedBoothId) {
               return {
                 ...booth,
-                countingRounds: booth.countingRounds.map(r => 
+                countingRounds: booth.countingRounds.map(r =>
                   r.id === editingRoundId
                     ? {
-                        ...r,
-                        voteValue: voteValue,
-                        results: response.result.results || r.results
-                      }
+                      ...r,
+                      voteValue: voteValue,
+                      results: response.result.results || r.results
+                    }
                     : r
                 )
               };
@@ -583,7 +583,7 @@ const CountingPanel = () => {
             return booth;
           }));
         }
-        
+
         toast({
           title: "Round Updated",
           description: "The round has been updated successfully.",
@@ -596,7 +596,7 @@ const CountingPanel = () => {
         });
       }
     });
-  
+
     setIsEditingRound(false);
     setEditingRoundId(null);
     setSelectedBoothId(null);
@@ -604,7 +604,7 @@ const CountingPanel = () => {
 
   const handleAddRound = useCallback(() => {
     if (!selectedBoothId || !socket || !electionId) return;
-  
+
     if (newRoundEntries.every(entry => entry.votes === 0)) {
       toast({
         title: "Invalid Entries",
@@ -613,12 +613,12 @@ const CountingPanel = () => {
       });
       return;
     }
-  
+
     // Get the next round number for this booth
     const booth = booths.find(b => b.id === selectedBoothId);
-    const nextRoundNumber = booth?.countingRounds.length ? 
+    const nextRoundNumber = booth?.countingRounds.length ?
       Math.max(...booth.countingRounds.map(r => r.roundNumber)) + 1 : 1;
-  
+
     // Convert to DTO format for backend
     const roundData = {
       electionId,
@@ -630,7 +630,7 @@ const CountingPanel = () => {
         voteCount: entry.votes
       }))
     };
-  
+
     // Send to server via WebSocket
     socket.emit('submitVoteCount', roundData, (response: any) => {
       if (response && response.success) {
@@ -640,7 +640,7 @@ const CountingPanel = () => {
             if (booth.id === selectedBoothId) {
               // Check if the round already exists
               const roundExists = booth.countingRounds.some(r => r.id === response.result.id);
-              
+
               if (!roundExists) {
                 return {
                   ...booth,
@@ -658,7 +658,7 @@ const CountingPanel = () => {
             return booth;
           }));
         }
-        
+
         toast({
           title: "Round Added",
           description: "The new round has been created successfully.",
@@ -671,7 +671,7 @@ const CountingPanel = () => {
         });
       }
     });
-  
+
     setIsAddingRound(false);
     setSelectedBoothId(null);
   }, [selectedBoothId, newRoundEntries, voteValue, socket, electionId, booths]);
@@ -681,7 +681,7 @@ const CountingPanel = () => {
     setIsEditingRound(false);
     setEditingRoundId(null);
     setSelectedBoothId(null);
-    
+
     // Reset entries
     setNewRoundEntries([]);
     setVoteValue(1);
@@ -768,7 +768,7 @@ const CountingPanel = () => {
 
   const handleCompleteCounting = useCallback((boothId: string) => {
     if (!socket || !electionId) return;
-    
+
     const booth = booths.find(b => b.id === boothId);
     if (!booth) return;
 
@@ -831,7 +831,7 @@ const CountingPanel = () => {
   const calculateTotalVotes = useCallback((results: Result[]) => {
     return results.reduce((sum, result) => sum + result.voteCount, 0);
   }, []);
-  
+
   // Determine if there are any rounds with draft status
   const hasDraftRounds = useCallback((booth: Booth) => {
     return booth.countingRounds.some(round => round.status === 'DRAFT');
@@ -874,7 +874,7 @@ const CountingPanel = () => {
             <p className="text-gray-500">No booths available. Waiting for data from server...</p>
           </Card>
         )}
-        
+
         <Accordion type="single" collapsible className="w-full space-y-4">
           {booths.map((booth) => (
             <AccordionItem
@@ -889,8 +889,8 @@ const CountingPanel = () => {
                     <Badge
                       variant={
                         booth.status === 'COMPLETED' ? 'default' :
-                        booth.status === 'COUNTING' ? 'secondary' :
-                        'outline'
+                          booth.status === 'COUNTING' ? 'secondary' :
+                            'outline'
                       }
                     >
                       {booth.status.charAt(0).toUpperCase() + booth.status.slice(1)}
@@ -936,9 +936,9 @@ const CountingPanel = () => {
                         )}
                         <Button
                           onClick={() => {
-                          if (window.confirm("Are you sure you want to complete counting for this booth? This action cannot be undone.")) {
-                            handleCompleteCounting(booth.id);
-                          }
+                            if (window.confirm("Are you sure you want to complete counting for this booth? This action cannot be undone.")) {
+                              handleCompleteCounting(booth.id);
+                            }
                           }}
                           className="flex items-center gap-2"
                           disabled={!isConnected || hasDraftRounds(booth)}
@@ -957,7 +957,7 @@ const CountingPanel = () => {
                         No rounds available. {booth.status === 'COUNTING' ? 'Add a round to start counting.' : ''}
                       </div>
                     )}
-                    
+
                     {booth.countingRounds && booth.countingRounds.map((round) => (
                       <Card key={round.id} className={`${round.status === 'DRAFT' ? 'border-amber-300' : 'border-green-200'}`}>
                         <CardHeader className="flex-row items-center justify-between bg-gray-50 py-3">
@@ -1005,15 +1005,15 @@ const CountingPanel = () => {
                               </div>
                             </div>
                             {round.results.map((result) => (
-                              <div 
-                                key={result.candidateId} 
+                              <div
+                                key={result.candidateId}
                                 className="flex justify-between items-center px-2 py-2 hover:bg-gray-50 rounded"
                               >
                                 <div>
                                   <p className="font-medium">{result.candidate?.name || 'Unknown Candidate'}</p>
                                   <p className="text-xs text-gray-500">
-                                    {result.candidate?.position || 'Unknown Position'} • 
-                                    {result.candidate?.partyId 
+                                    {result.candidate?.position || 'Unknown Position'} •
+                                    {result.candidate?.partyId
                                       ? getPartyName(result.candidate.partyId)
                                       : 'Independent'}
                                   </p>
@@ -1029,7 +1029,7 @@ const CountingPanel = () => {
                               </div>
                             ))}
                           </div>
-                          
+
                           <div className="mt-4 pt-4 border-t flex justify-between items-center">
                             <div>
                               <span className="text-sm text-gray-500">Total Votes:</span>
