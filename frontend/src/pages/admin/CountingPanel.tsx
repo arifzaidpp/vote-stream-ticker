@@ -161,46 +161,46 @@ const RoundDialog = React.memo(({
           </div>
         </div>
 
-        <div className="max-h-60vh overflow-y-auto">
-          {Object.entries(groupedCandidates).map(([party, candidates]) => (
-            <div key={party} className="space-y-4">
-              <h3 className="font-semibold text-lg border-b pb-2">{party}</h3>
-              <div className="space-y-3">
-                {candidates.map((candidate) => {
-                  const entry = entries.find(e => e.candidateId === candidate.id);
-                  const votes = entry?.votes || 0;
-                  const calculatedVotes = entry?.calculatedVotes !== undefined 
-                    ? entry.calculatedVotes 
-                    : Number((votes * voteValue).toFixed(2));
+        <div className="max-h-[60vh] overflow-y-auto">
+  {Object.entries(groupedCandidates).map(([party, candidates]) => (
+    <div key={party} className="space-y-4">
+      <h3 className="font-semibold text-lg border-b pb-2">{party}</h3>
+      <div className="space-y-3">
+        {candidates.map((candidate) => {
+          const entry = entries.find(e => e.candidateId === candidate.id);
+          const votes = entry?.votes || 0;
+          const calculatedVotes = entry?.calculatedVotes !== undefined 
+            ? entry.calculatedVotes 
+            : Number((votes * voteValue).toFixed(2));
 
-                  return (
-                    <div key={candidate.id} className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{candidate.name}</p>
-                        <p className="text-sm text-gray-500">{candidate.position}</p>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="w-32">
-                          <Input
-                            type="number"
-                            min="0"
-                            value={votes}
-                            onChange={(e) => onVoteChange(candidate.id, e.target.value)}
-                            className="text-right"
-                          />
-                        </div>
-                        <div className="w-32 text-right">
-                          <p className="text-sm text-gray-500">Calculated Votes</p>
-                          <p className="font-medium">{calculatedVotes}</p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+          return (
+            <div key={candidate.id} className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">{candidate.name}</p>
+                <p className="text-sm text-gray-500">{candidate.position}</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="w-32">
+                  <Input
+                    type="number"
+                    min="0"
+                    value={votes}
+                    onChange={(e) => onVoteChange(candidate.id, e.target.value)}
+                    className="text-right"
+                  />
+                </div>
+                <div className="w-32 text-right">
+                  <p className="text-sm text-gray-500">Calculated Votes</p>
+                  <p className="font-medium">{calculatedVotes}</p>
+                </div>
               </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
+      </div>
+    </div>
+  ))}
+</div>
       </div>
 
       <DialogFooter>

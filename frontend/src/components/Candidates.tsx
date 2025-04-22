@@ -9,7 +9,7 @@ import {
 import { motion } from 'framer-motion';
 
 // Helper function to create a lighter version of a hex color for backgrounds
-const lightenColor = (hex, opacity = 0.15) => {
+const lightenColor = (hex, opacity = 0.75) => {
   // Remove the # if present
   hex = hex.replace('#', '');
   
@@ -81,43 +81,63 @@ const Candidates = ({ presidents, secretaries, treasurers }) => {
             const totalVotes = candidate.totalVotes || candidate.votes || 0;
             const totalVotesForPosition = totalVotesByPosition[candidate.position] || 1;
             const percentage = candidate.percentage || Math.round((totalVotes / totalVotesForPosition) * 100);
+            const progressBarWidth = (totalVotes / totalVotesForPosition) * 100;
             const isLeading = leaders[candidate.position] === totalVotes && totalVotes > 0;
             
-            // Create background styles with lighter versions of party colors
-            const imageBackgroundStyle = {
-              backgroundColor: candidate.partyColor ? lightenColor(candidate.partyColor) : '#f9fafb'
+            const clipPathStyle = {
+              clipPath: 'inset(0 0 0 0 round 0.5rem)',
+              WebkitClipPath: 'inset(0 0 0 0 round 0.5rem)'
             };
-
+            
             return (
               <CarouselItem key={index} className="h-full">
-                <div className="flex flex-row items-center gap-4 h-full pb-2">
+                <div className="flex flex-row items-center gap-4 rounded-md h-full pb-2">
                   <div className="flex-shrink-0 w-1/3">
                     {candidate.photo ? (
                       <div 
                         className={cn(
-                          "rounded-lg overflow-hidden shadow-md transition-all duration-300",
-                          isLeading ? "border-2 border-yellow-400" : "border-2 border-gray-100"
+                          "shadow-md transition-all duration-300 relative overflow-hidden",
+                          isLeading ? "border-2 border-green-400" : "border-2 border-gray-100"
                         )}
-                        style={imageBackgroundStyle}
+                        style={{
+                          borderRadius: '0.5rem',
+                          ...clipPathStyle,
+                          backgroundColor: candidate.partyColor ? lightenColor(candidate.partyColor) : '#f9fafb',
+                          aspectRatio: '1/1', // Make it square for cleaner presentation
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
                       >
                         <img
                           src={candidate.photo}
                           alt={candidate.name}
-                          className="w-full h-auto object-cover"
+                          className="w-full h-full object-cover"
+                          style={{
+                            ...clipPathStyle
+                          }}
                         />
                       </div>
                     ) : (
                       <div 
                         className={cn(
-                          "rounded-lg overflow-hidden shadow-md transition-all duration-300",
-                          isLeading ? "border-2 border-yellow-400" : "border-2 border-gray-100"
+                          "shadow-md transition-all duration-300 relative overflow-hidden",
+                          isLeading ? "border-2 border-green-400" : "border-2 border-gray-100"
                         )}
-                        style={imageBackgroundStyle}
+                        style={{
+                          borderRadius: '0.5rem',
+                          ...clipPathStyle,
+                          backgroundColor: candidate.partyColor ? lightenColor(candidate.partyColor) : '#f9fafb',
+                          aspectRatio: '1/1' // Make it square for cleaner presentation
+                        }}
                       >
                         <img
                           src={`https://api.dicebear.com/7.x/initials/svg?seed=${candidate.name}`}
                           alt={candidate.name}
-                          className="w-full h-auto"
+                          className="w-full h-full"
+                          style={{
+                            ...clipPathStyle
+                          }}
                         />
                       </div>
                     )}
@@ -173,7 +193,7 @@ const Candidates = ({ presidents, secretaries, treasurers }) => {
                     {/* Votes progress */}
                     <div className="mt-auto w-full">
                       <div className="flex justify-between items-center mb-1">
-                        <p className="text-sm font-medium text-gray-800 drop-shadow-md">Total Votes</p>
+                        <p className="text-sm font-medium text-gray-800 drop-shadow-md">Progress</p>
                         <motion.p
                           className="text-sm font-bold text-black drop-shadow-md"
                         >
@@ -182,13 +202,9 @@ const Candidates = ({ presidents, secretaries, treasurers }) => {
                       </div>
                       <div className="w-full bg-black/10 rounded-full h-2.5 overflow-hidden backdrop-blur-sm">
                         <motion.div
-                          className="h-full rounded-full transition-all duration-700"
-                          style={{
-                            width: `${percentage}%`,
-                            backgroundColor:  '#3b82f6',
-                          }}
+                          className="h-full rounded-full transition-all duration-700 bg-blue-500"
                           initial={{ width: 0 }}
-                          animate={{ width: `${percentage}%` }}
+                          animate={{ width: `${progressBarWidth}%` }}
                           transition={{ duration: 0.7, ease: "easeOut" }}
                         />
                       </div>

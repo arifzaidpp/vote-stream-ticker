@@ -10,15 +10,16 @@ interface PartyCardProps {
     position: string;
     photo?: string;
     votes: number;
+    percentage?: number;
   }>;
   boothName?: string;
   logo?: string;
 }
 
-const PartyCard: React.FC<PartyCardProps> = ({ partyName, color, candidates, boothName, logo }) => {
+const PartyCard: React.FC<PartyCardProps> = ({ partyName, color, candidates, logo }) => {
   const [voteUpdated, setVoteUpdated] = useState<Record<string, boolean>>({});
   
-  console.log("PartyCard candidates:", candidates);
+  // console.log("PartyCard candidates:", candidates);
   
   useEffect(() => {
     candidates.forEach(candidate => {
@@ -66,11 +67,6 @@ const PartyCard: React.FC<PartyCardProps> = ({ partyName, color, candidates, boo
       getColorClasses())}>
       <div className={cn("py-2 px-4 text-white font-bold text-lg flex items-center justify-between", getColorClasses())} style={colorStyle}>
       <span className="text-xl">{partyName}</span>
-        {boothName && (
-           <span className="text-sm bg-white/20 px-3 py-1 rounded">
-           {boothName}
-         </span>
-        )}
         {logo && (
           <img src={logo} alt={`${partyName} logo`} className="h-8 w-8" />
         )}
@@ -119,6 +115,8 @@ const PartyCard: React.FC<PartyCardProps> = ({ partyName, color, candidates, boo
                   {candidate.name}
                   </div>
                   
+                  <div>{candidate.percentage}%</div>
+
                   <div className={cn(
                   "font-semibold text-sm", 
                   voteUpdated[key] ? "text-green-600" : "text-gray-700"

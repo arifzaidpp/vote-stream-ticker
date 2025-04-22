@@ -3,7 +3,7 @@
 // import * as jwt from 'jsonwebtoken';
 
 // // Configuration
-// const WS_URL = 'http://localhost:3000'; // Update with your NestJS server URL
+// const WS_URL = 'http://https://vxpqsrlw-3000.inc1.devtunnels.ms'; // Update with your NestJS server URL
 // const JWT_SECRET = 'your-jwt-secret'; // Use the same secret as in your app
 
 // // Mock data for testing

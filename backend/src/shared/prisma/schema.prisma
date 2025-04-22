@@ -198,7 +198,7 @@ model Result {
   candidate     Candidate     @relation(fields: [candidateId], references: [id])
   candidateId   String        @map("candidate_id")
   countedAt DateTime @default(now()) @map("counted_at")
-  voteCount     Int           @map("vote_count")
+  voteCount     Float           @map("vote_count")
 
   @@map("results")
   @@schema("election_schema")

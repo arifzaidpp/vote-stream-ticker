@@ -19,9 +19,9 @@ export class CountingController {
     return this.countingService.submitVoteCount(dto);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Post('publish/:roundId')
-  async publishCountingRound(@Param('roundId') roundId: string) {
-    return this.countingService.publishCountingRound(roundId);
-  }
+  // @UseGuards(JwtAuthGuard)
+  // @Post('publish/:roundId')
+  // async publishCountingRound(@Param('roundId') roundId: string) {
+  //   return this.countingService.publishCountingRound(roundId);
+  // }
 }

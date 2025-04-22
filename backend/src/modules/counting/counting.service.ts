@@ -60,7 +60,6 @@ export class CountingService {
     }
 
     console.log('Booth', booth);
-    console.log('dto', dto);
     
 
     if (!dto.results) {
@@ -151,15 +150,16 @@ export class CountingService {
           data: {
             roundId: countingRound.id,
             candidateId: result.candidateId,
-            voteCount: result.voteCount
+            voteCount: parseFloat(result.voteCount.toString()) * parseFloat(dto.voteValue.toString())
           }
         })
       );
-
+      
       const createdResults = await Promise.all(resultPromises);
+      
 
       // Calculate total votes in this round
-      const totalVotes = dto.results.reduce((sum, result) => sum + result.voteCount, 0);
+      const totalVotes = createdResults.reduce((sum, result) => sum + result.voteCount, 0);
 
       // Update the booth's total votes
       const booth = await prisma.booth.findUnique({
@@ -217,7 +217,7 @@ export class CountingService {
     });
   }
 
-  async publishCountingRound(roundId: string) {
+  async publishCountingRound(roundId: string, electionId: string) {
     const countingRound = await this.prisma.countingRound.findUnique({
       where: { id: roundId },
       include: {
@@ -247,15 +247,27 @@ export class CountingService {
 
     // Fetch all candidates and their updated vote counts
     const candidates = await this.prisma.candidate.findMany({
+      where: {
+      party: {
+        electionId: electionId
+      }
+      },
       include: {
       results: {
-        where: { roundId: roundId }
+        where: { roundId: roundId },
       }
       }
     });
 
+    // console.log('Candidates with results:', candidates);
+    
+    
+
     // Map candidates to include the required fields and calculate total votes
     const updatedCandidates = candidates.map(candidate => {
+      console.log('Candidate:', candidate);
+      console.log('Candidate results:', candidate.results);
+      
       const totalVotes = candidate.results.reduce((sum, result) => sum + result.voteCount, candidate.votes);
       return {
       id: candidate.id,

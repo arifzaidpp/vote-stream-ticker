@@ -8,7 +8,7 @@ export class VoteResultDto {
   
   @IsNumber()
   @Min(0)
-  voteCount: number;
+  voteCount: number; //string needed
 }
 
 export class SubmitVoteCountDto {
@@ -23,7 +23,7 @@ export class SubmitVoteCountDto {
 
   @IsNumber()
   @Min(1)
-  voteValue: number;
+  voteValue: number; //string needed
   
   @IsArray()
   @ValidateNested({ each: true })

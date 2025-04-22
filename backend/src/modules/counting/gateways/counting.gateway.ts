@@ -96,7 +96,7 @@ import {
         console.log('data', data);
         
         // Publish the counting round
-        const updatedRound = await this.countingService.publishCountingRound(data.roundId);
+        const updatedRound = await this.countingService.publishCountingRound(data.roundId, data.electionId);
         
         // Broadcast the published round to all clients in the election room
         this.server.to(`election_${data.electionId}`).emit('roundPublished', {

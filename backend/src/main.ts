@@ -1,7 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import * as express from 'express';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
@@ -11,45 +9,64 @@ import { PrismaService } from './shared/prisma/prisma.service';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as bodyParser from 'body-parser';
 
-const server = express();
-
+/**
+ * Bootstrap the application
+ *  @async @function bootstrap
+ *  @returns {Promise<void>}
+ */
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, new ExpressAdapter(server), {
+  const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
   });
-
   const configService = app.get(ConfigService);
   const prismaService = app.get(PrismaService);
 
+  // Ensure proper shutdown with Prisma
   prismaService.enableShutdownHooks(app);
 
+  // Parse cookies
   app.use(cookieParser());
-  app.use(compression());
-  app.use(bodyParser.json({ limit: '10mb' }));
-  app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
-  // Helmet
+  // Security with Helmet (if enabled)
   if (configService.get('app.helmet')) {
     app.use(
       helmet({
         contentSecurityPolicy:
           configService.get('app.environment') === 'production',
       }),
+      
     );
   }
 
+  // Compression
+  app.use(compression());
+
+  // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       exceptionFactory: (errors) => new BadRequestException(errors),
-      transform: true,
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transformOptions: { enableImplicitConversion: true },
+      transform: true, // Transform payloads to DTO instances
+      whitelist: true, // Strip properties not in DTO
+      forbidNonWhitelisted: true, // Throw errors if non-whitelisted values are provided
+      transformOptions: {
+        enableImplicitConversion: true, // Enable implicit conversion of primitives
+      },
     }),
   );
 
+  // TODO : Enable CORS if needed
+
+  // CORS if enabled
+  // if (configService.get('app.cors.enabled')) {
+  //   app.enableCors({
+  //     origin: configService.get('app.cors.origin'),
+  //     credentials: configService.get('app.cors.credentials'),
+  //   });
+  // }
+
+  // Enable CORS for all domains
   app.enableCors({
-    origin: true,
+    origin: true, // Or specify your frontend URL like 'http://localhost:5173'
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
     allowedHeaders: 'Content-Type, Accept, Authorization',
@@ -57,9 +74,17 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
   });
 
+  // Set global prefix if configured
   const apiPrefix = configService.get('app.apiPrefix');
-  if (apiPrefix) app.setGlobalPrefix(apiPrefix);
+  if (apiPrefix) {
+    app.setGlobalPrefix(apiPrefix);
+  }
 
+  app.use(bodyParser.json({ limit: '10mb' }));
+  app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+
+
+  // Setup Swagger documentation for REST endpoints
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Election Result API')
     .setDescription('The Election Result API documentation')
@@ -70,9 +95,16 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api/docs', app, document);
 
-  await app.init(); // DON'T use app.listen
+  // Start the server
+  const port = configService.get('app.port');
+  await app.listen(port);
+
+  console.log(`Application is running on: http://localhost:${port}`);
+  console.log(
+    `GraphQL Apollo Sandbox: http://localhost:${port}/${configService.get('graphql.path')}`,
+  );
+  console.log(`API Documentation: http://localhost:${port}/api/docs`);
 }
 
+// Start the application
 bootstrap();
-
-export default server; // 👈 Export Express server for Vercel
