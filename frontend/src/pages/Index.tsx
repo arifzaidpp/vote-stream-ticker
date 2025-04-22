@@ -53,7 +53,7 @@ const Index = () => {
     }
 
     // Initialize socket with auth token
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://vote-stream-ticker.vercel.app';
     const socketInstance = io(apiUrl, {
       extraHeaders: {
         Authorization: `Bearer ${token}`,

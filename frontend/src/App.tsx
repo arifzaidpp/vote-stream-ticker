@@ -38,7 +38,7 @@ const errorLink = onError(({ networkError, graphQLErrors, operation }) => {
 
 // Create HTTP link - WITH credentials for session auth
 const httpLink = new HttpLink({
-  uri: import.meta.env.VITE_GRAPHQL_API_URL || "http://localhost:3000/graphql",
+  uri: import.meta.env.VITE_GRAPHQL_API_URL || "https://vote-stream-ticker.vercel.app/graphql",
   credentials: 'include', // Critical for session-based auth
   fetchOptions: {
     mode: 'cors',
