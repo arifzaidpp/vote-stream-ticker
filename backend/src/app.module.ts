@@ -10,6 +10,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
 import { join } from 'path';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
+import { KeyValueCache } from '@apollo/utils.keyvaluecache';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import depthLimit from 'graphql-depth-limit';
 
@@ -118,7 +119,7 @@ import { CountingModule } from './modules/counting/counting.module';
           configService.get('graphql.subscriptions') === true;
 
         return {
-          autoSchemaFile: 'schema.gql',
+          autoSchemaFile: true,
           sortSchema: true,
 
           // Updated playground configuration
@@ -173,7 +174,7 @@ import { CountingModule } from './modules/counting/counting.module';
               }
             : undefined,
 
-          cache: 'bounded',
+          cache: 'bounded' as 'bounded' | KeyValueCache<string> | undefined,
 
           // CSRF Prevention settings
           csrfPrevention: {
